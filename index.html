@@ -220,5 +220,22 @@
 <script src="data/members.js"></script>
 <script src="js/script.js"></script>
 
+<!-- Firebase SDK (TAMBAHKAN INI SEBELUM SCRIPT LAINNYA) -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+<!-- Loading Indicator (TAMBAHKAN INI) -->
+<div id="loadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; display: flex; justify-content: center; align-items: center;">
+    <div style="background: white; padding: 30px; border-radius: 10px; text-align: center;">
+        <div style="font-size: 40px; margin-bottom: 15px;">⏳</div>
+        <div style="font-size: 18px; color: #667eea; font-weight: 600;">Loading...</div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="data/members.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/script.js"></script>
+
 </body>
 </html>
