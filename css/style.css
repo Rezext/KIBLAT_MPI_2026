@@ -8,6 +8,9 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f5f5f5;
     color: #333;
+    overscroll-behavior-y: contain;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 /* ===== LOGIN PAGE ===== */
@@ -47,7 +50,6 @@ body {
     color: #999;
 }
 
-/* Login Tabs */
 .login-tabs {
     display: flex;
     gap: 5px;
@@ -66,6 +68,7 @@ body {
     font-weight: 600;
     font-size: 12px;
     transition: all 0.3s;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .login-tab-btn:hover {
@@ -102,7 +105,7 @@ body {
     padding: 12px;
     border: 1px solid #ddd;
     border-radius: 5px;
-    font-size: 14px;
+    font-size: 16px;
     transition: border-color 0.3s;
 }
 
@@ -123,6 +126,7 @@ body {
     font-weight: 600;
     cursor: pointer;
     transition: transform 0.2s;
+    min-height: 44px;
 }
 
 .login-btn:hover {
@@ -149,6 +153,15 @@ body {
     padding: 20px;
     min-height: 100vh;
     overflow-y: auto;
+}
+
+.sidebar::-webkit-scrollbar {
+    display: none;
+}
+
+.sidebar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
 
 .sidebar-header {
@@ -183,9 +196,12 @@ body {
     text-decoration: none;
     border-radius: 5px;
     cursor: pointer;
-    opacity: 1;
     font-size: 14px;
     transition: all 0.3s;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .sidebar-menu a:hover {
@@ -218,12 +234,14 @@ body {
     font-size: 13px;
     transition: all 0.3s;
     border-left: 3px solid transparent;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
 }
 
 .divisi-menu a:hover {
     background: #34495e;
     border-left-color: #667eea;
-    padding-left: 12px;
 }
 
 .divisi-menu a.active {
@@ -236,6 +254,10 @@ body {
     flex: 1;
     padding: 30px;
     overflow-y: auto;
+}
+
+.content-area::-webkit-scrollbar {
+    display: none;
 }
 
 .content-header {
@@ -261,6 +283,7 @@ body {
     cursor: pointer;
     font-weight: 600;
     transition: background 0.3s;
+    min-height: 44px;
 }
 
 .logout-btn:hover {
@@ -285,6 +308,8 @@ body {
     font-weight: 600;
     transition: all 0.3s;
     font-size: 14px;
+    min-height: 44px;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .tab-btn:hover {
@@ -340,7 +365,7 @@ body {
     padding: 12px;
     border: 1px solid #ddd;
     border-radius: 5px;
-    font-size: 14px;
+    font-size: 16px;
     font-family: inherit;
     transition: border-color 0.3s;
 }
@@ -397,6 +422,7 @@ body {
     cursor: pointer;
     transition: all 0.3s;
     font-size: 14px;
+    min-height: 44px;
 }
 
 .btn-submit {
@@ -427,6 +453,7 @@ body {
     cursor: pointer;
     font-size: 12px;
     transition: background 0.3s;
+    min-height: 44px;
 }
 
 .btn-delete:hover {
@@ -443,6 +470,7 @@ body {
     font-size: 12px;
     transition: background 0.3s;
     margin-right: 5px;
+    min-height: 44px;
 }
 
 .btn-edit:hover {
@@ -459,6 +487,7 @@ body {
     font-size: 12px;
     transition: background 0.3s;
     margin-right: 5px;
+    min-height: 44px;
 }
 
 .btn-check:hover {
@@ -475,6 +504,7 @@ body {
     font-size: 12px;
     transition: background 0.3s;
     margin-right: 5px;
+    min-height: 44px;
 }
 
 .btn-uncheck:hover {
@@ -624,6 +654,10 @@ body {
     position: relative;
 }
 
+.modal-content::-webkit-scrollbar {
+    display: none;
+}
+
 .close {
     position: absolute;
     right: 20px;
@@ -638,7 +672,6 @@ body {
     color: #000;
 }
 
-/* CP Modal */
 .cp-list {
     margin-top: 20px;
 }
@@ -671,8 +704,8 @@ body {
     font-weight: 500;
 }
 
-/* Jadwal Modal */
-#jadwalList {
+#jadwalList,
+#absensiContent {
     margin-top: 20px;
 }
 
@@ -695,29 +728,10 @@ body {
     color: #7f8c8d;
 }
 
-/* Absensi Modal */
-.btn-download {
-    padding: 10px 20px;
-    background: #667eea;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    margin-bottom: 20px;
-    font-weight: 600;
-}
-
-.btn-download:hover {
-    background: #5568d3;
-}
-
-#absensiContent {
-    margin-top: 20px;
-}
-
 .absensi-table {
     width: 100%;
     border-collapse: collapse;
+    font-size: 14px;
 }
 
 .absensi-table th,
@@ -733,8 +747,22 @@ body {
     font-weight: 600;
 }
 
-/* ===== RESPONSIVE ===== */
+/* ===== RESPONSIVE MOBILE ===== */
 @media (max-width: 768px) {
+    .login-box {
+        padding: 30px 20px;
+        width: 95%;
+    }
+
+    .login-box h1 {
+        font-size: 24px;
+    }
+
+    .login-tab-btn {
+        font-size: 11px;
+        padding: 10px 8px;
+    }
+
     .main-container {
         flex-direction: column;
     }
@@ -742,15 +770,37 @@ body {
     .sidebar {
         width: 100%;
         min-height: auto;
+        max-height: 50vh;
+        position: sticky;
+        top: 0;
+        z-index: 100;
     }
 
-    .form-row {
-        grid-template-columns: 1fr;
+    .sidebar-menu,
+    .divisi-menu {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .sidebar-menu li {
+        margin-bottom: 0;
     }
 
     .sidebar-menu a,
     .divisi-menu a {
-        font-size: 12px;
+        padding: 10px 8px;
+        font-size: 11px;
+        text-align: center;
+        border-left: none;
+    }
+
+    .divisi-menu h3 {
+        grid-column: 1 / -1;
+    }
+
+    .content-area {
+        padding: 20px 15px;
     }
 
     .content-header {
@@ -759,15 +809,67 @@ body {
         gap: 15px;
     }
 
+    .content-header h1 {
+        font-size: 24px;
+    }
+
     .logout-btn {
         width: 100%;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
     }
 
     .priority-group {
         flex-direction: column;
     }
 
-    .login-tabs {
+    .btn-group {
         flex-direction: column;
+    }
+
+    .btn-submit,
+    .btn-reset {
+        width: 100%;
+    }
+
+    .todo-actions {
+        flex-wrap: wrap;
+    }
+
+    .todo-actions button {
+        flex: 1;
+        min-width: calc(50% - 4px);
+    }
+
+    .modal-content {
+        width: 95%;
+        padding: 20px;
+    }
+
+    .cp-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+
+    .absensi-table {
+        font-size: 12px;
+    }
+
+    .absensi-table th,
+    .absensi-table td {
+        padding: 8px 5px;
+    }
+}
+
+@media (max-width: 375px) {
+    .login-tab-btn {
+        font-size: 10px;
+    }
+
+    .content-header h1 {
+        font-size: 20px;
     }
 }
