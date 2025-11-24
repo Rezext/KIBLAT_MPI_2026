@@ -7,16 +7,12 @@
     <title>KIBLAT MPI 2026</title>
     <meta name="description" content="Kompetisi Ilmiah dan Budaya Lintas Atletik Terampil">
     
-    <!-- Mobile Optimization -->
     <meta name="theme-color" content="#667eea">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
-    <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
-    
-    <!-- Stylesheet -->
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -30,14 +26,12 @@
         
         <div id="errorMessage" class="error-message"></div>
         
-        <!-- Tab Login -->
         <div class="login-tabs">
             <button class="login-tab-btn active" data-login="anggota">Login Anggota</button>
             <button class="login-tab-btn" data-login="admin">Login Admin</button>
             <button class="login-tab-btn" data-login="developer">Login Developer</button>
         </div>
 
-        <!-- Form Login Anggota -->
         <form id="loginFormAnggota" class="login-form active">
             <div class="form-group">
                 <label for="nimAnggota">NIM</label>
@@ -46,7 +40,6 @@
             <button type="submit" class="login-btn">Login</button>
         </form>
 
-        <!-- Form Login Admin -->
         <form id="loginFormAdmin" class="login-form">
             <div class="form-group">
                 <label for="nimAdmin">NIM</label>
@@ -59,7 +52,6 @@
             <button type="submit" class="login-btn">Login Admin</button>
         </form>
 
-        <!-- Form Login Developer -->
         <form id="loginFormDeveloper" class="login-form">
             <div class="form-group">
                 <label for="passwordDeveloper">Password Developer</label>
@@ -72,6 +64,7 @@
 
 <!-- MAIN DASHBOARD -->
 <div id="mainContainer" class="main-container" style="display: none;">
+    
     <!-- SIDEBAR -->
     <div class="sidebar">
         <div class="sidebar-header">
@@ -93,20 +86,26 @@
         </div>
     </div>
 
+    <!-- SIDEBAR OVERLAY -->
+    <div id="sidebarOverlay" class="sidebar-overlay"></div>
+
     <!-- CONTENT AREA -->
     <div class="content-area">
         <div class="content-header">
+            <button id="hamburgerBtn" class="hamburger-btn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
             <h1 id="divisiTitle">📅 Dashboard</h1>
             <button id="logoutBtn" class="logout-btn">Logout</button>
         </div>
 
-        <!-- TAB NAVIGATION -->
         <div class="tab-nav">
             <button class="tab-btn active" data-tab="input">📝 Input/Edit</button>
             <button class="tab-btn" data-tab="hasil">📊 Hasil</button>
         </div>
 
-        <!-- INPUT TAB -->
         <div id="inputTab" class="input-section">
             <h3>Tambah To-Do List</h3>
             <form id="todoForm">
@@ -159,7 +158,6 @@
             </form>
         </div>
 
-        <!-- HASIL TAB -->
         <div id="hasilTab" class="results-section">
             <div id="urgentContainer" class="priority-container">
                 <div class="priority-header urgent">⚠️ Penting & Mendesak</div>
@@ -236,11 +234,9 @@
     </div>
 </div>
 
-<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
-<!-- Scripts -->
 <script src="data/members.js"></script>
 <script src="js/firebase-config.js"></script>
 <script src="js/script.js"></script>
