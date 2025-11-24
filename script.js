@@ -1,18 +1,37 @@
-import { db, storage } from './firebase-config.js';
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { 
+    getFirestore, 
     collection, 
     addDoc, 
     getDocs, 
     updateDoc, 
     deleteDoc, 
     doc,
+    getDoc,
     query,
     where,
     orderBy,
     Timestamp 
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
-// ===== DATA ANGGOTA (dari Excel) =====
+// ===== FIREBASE CONFIG =====
+const firebaseConfig = {
+    apiKey: "AIzaSyBsUD_rxmmW5BCFK37k_0LxF1RQzYsQThI",
+    authDomain: "kiblat-mpi-2026.firebaseapp.com",
+    projectId: "kiblat-mpi-2026",
+    storageBucket: "kiblat-mpi-2026.firebasestorage.app",
+    messagingSenderId: "466657139642",
+    appId: "1:466657139642:web:6981463f755ecb1b82db83",
+    measurementId: "G-D77ENTXG61"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+console.log('🔥 Firebase initialized successfully!');
+
+// ===== DATA ANGGOTA =====
 const dataAnggota = {
     "230101050652": { nama: "AHMAD RIJANI", divisi: "Inti Pelaksana", role: "admin" },
     "230101050763": { nama: "AIDA MUSLIMAH", divisi: "Inti Pelaksana", role: "admin" },
@@ -22,115 +41,45 @@ const dataAnggota = {
     // Divisi Acara
     "230101050654": { nama: "ALYA MUFIDA", divisi: "Acara", role: "member" },
     "230101050669": { nama: "GITALIS TAMARA PUTRI MEI DINA", divisi: "Acara", role: "member" },
-    "230101050650": { nama: "AHMAD MAULANA", divisi: "Acara", role: "member" },
-    "230101050114": { nama: "SITI MARDIAH", divisi: "Acara", role: "member" },
-    "230101050271": { nama: "NURHIDAYAH", divisi: "Acara", role: "member" },
-    "230101050102": { nama: "BUKHOIRI RIDWAN", divisi: "Acara", role: "member" },
-    "230101050266": { nama: "NILNA MUNA", divisi: "Acara", role: "member" },
-    "241101050353": { nama: "SHOFIA RAHMI", divisi: "Acara", role: "member" },
-    "220101050238": { nama: "MUHAMMAD JERY ROYFALDO", divisi: "Acara", role: "member" },
-    
-    // Divisi PDD
-    "230101050269": { nama: "NOR ALYA ANNISA", divisi: "PDD", role: "member" },
-    "230101050273": { nama: "RIZKYA NAZWA", divisi: "PDD", role: "member" },
-    "230101050651": { nama: "AHMAD QOSYAIRI", divisi: "PDD", role: "member" },
-    "230101050272": { nama: "NURUL HIKMAH", divisi: "PDD", role: "member" },
-    "230101050766": { nama: "CASILDA IMELIA SARI", divisi: "PDD", role: "member" },
-    "230101050653": { nama: "AISYA YUMNA NAILA", divisi: "PDD", role: "member" },
-    "230101050768": { nama: "AHMAD MIHBALI", divisi: "PDD", role: "member" },
-    "230101050105": { nama: "KARTINAH", divisi: "PDD", role: "member" },
-    
-    // Divisi Perleng
-    "230101050679": { nama: "MUHAMMAD ISLAMI", divisi: "Perleng", role: "member" },
-    "230101050684": { nama: "NADIVATUL LIZAHROH", divisi: "Perleng", role: "member" },
-    "230101050677": { nama: "MUHAMMAD ARSYAD", divisi: "Perleng", role: "member" },
-    "230101050676": { nama: "MUHAMAD QURRATULAINI", divisi: "Perleng", role: "member" },
-    "230101050104": { nama: "INTAN NURLIKA SARI", divisi: "Perleng", role: "member" },
-    "230101050275": { nama: "USWATUN HASANAH", divisi: "Perleng", role: "member" },
-    "230101050657": { nama: "ANNISA AHLA", divisi: "Perleng", role: "member" },
-    "230101050110": { nama: "NOVI AMELIA", divisi: "Perleng", role: "member" },
-    
-    // Divisi Konsumsi
-    "230101050274": { nama: "SITI KHADIZAH", divisi: "Konsumsi", role: "member" },
-    "230101050264": { nama: "NANDA TIA INDRIAWAN", divisi: "Konsumsi", role: "member" },
-    "230101050109": { nama: "NORTAZKIA RAMADHANI", divisi: "Konsumsi", role: "member" },
-    "230101050666": { nama: "ELYA BIDARI", divisi: "Konsumsi", role: "member" },
-    "230101050674": { nama: "ISMI FITRIANI", divisi: "Konsumsi", role: "member" },
-    "230101050107": { nama: "MUTHIA NABILA", divisi: "Konsumsi", role: "member" },
-    "230101050675": { nama: "LUTFIAH PUTRI JUTA LESTARI", divisi: "Konsumsi", role: "member" },
-    
-    // Divisi Kestapen
-    "230101050108": { nama: "NOR HIDAYATI", divisi: "Kestapen", role: "member" },
-    "230101050681": { nama: "MUHAMMAD ROYYAN HIDAYAT", divisi: "Kestapen", role: "member" },
-    "230101050682": { nama: "MUHAMMAD SUPIAN", divisi: "Kestapen", role: "member" },
-    "230101050683": { nama: "NADIA ULFAH", divisi: "Kestapen", role: "member" },
-    "230101050655": { nama: "ANNIS SAHLA", divisi: "Kestapen", role: "member" },
-    "230101050764": { nama: "GHINA KAMILAH ARNI", divisi: "Kestapen", role: "member" },
-    "230101050103": { nama: "HILYA HIDAYATI", divisi: "Kestapen", role: "member" },
-    
-    // Divisi Keamanan
-    "230101050670": { nama: "HIDAYATUN NI'MAH", divisi: "Keamanan", role: "member" },
-    "230101050649": { nama: "AHMAD ALDI", divisi: "Keamanan", role: "member" },
-    "230101050277": { nama: "ZAUHARATUL AULIA", divisi: "Keamanan", role: "member" },
-    "230101050268": { nama: "NOORRAHMAN", divisi: "Keamanan", role: "member" },
-    "230101050113": { nama: "RIFATUN NISA AL-ADILA", divisi: "Keamanan", role: "member" },
-    "230101050664": { nama: "AULIYA WULANDARI", divisi: "Keamanan", role: "member" },
-    "230101050111": { nama: "RANIA AZIRA", divisi: "Keamanan", role: "member" },
-    
-    // Divisi Promosi
-    "230101050767": { nama: "MUHAMMAD JAMIDI", divisi: "Promosi", role: "member" },
-    "230101050115": { nama: "SITI ROSIDAH", divisi: "Promosi", role: "member" },
-    "230101050270": { nama: "NORLATIPAH", divisi: "Promosi", role: "member" },
-    "230101050765": { nama: "NISRIN", divisi: "Promosi", role: "member" },
-    "230101050265": { nama: "NAZWA ASY SYIFA", divisi: "Promosi", role: "member" },
-    "230101050665": { nama: "DIANA AHMAD", divisi: "Promosi", role: "member" },
-    "230101050648": { nama: "AHMAD ALAMSYAH", divisi: "Promosi", role: "member" },
-    "230101050663": { nama: "AULIA RAHMAN", divisi: "Promosi", role: "member" },
-    
-    // Divisi Sponsorship (Humas)
-    "230101050688": { nama: "NORVILA", divisi: "Sponsorship", role: "member" },
-    "230101050680": { nama: "MUHAMMAD LUTHFI", divisi: "Sponsorship", role: "member" },
-    "230101050672": { nama: "HUSNA AZIZAH", divisi: "Sponsorship", role: "member" },
-    "230101050673": { nama: "ILHAM AHZATUNNAJAH FAHMI", divisi: "Sponsorship", role: "member" },
-    "230101050112": { nama: "RANTY SELVIA", divisi: "Sponsorship", role: "member" },
-    "230101050106": { nama: "KHARISMA APRILLIA", divisi: "Sponsorship", role: "member" },
-    "230101050667": { nama: "EVY NOORMALA", divisi: "Sponsorship", role: "member" },
-    "230101050267": { nama: "NI'MATUL UZHMA", divisi: "Sponsorship", role: "member" }
+    "230101050650": { nama: "AHMAD MAULANA", divisi: "Acara", role: "member" }
+    // ... tambahkan anggota lainnya
 };
 
 // State management
 let currentUser = null;
 let currentDivisi = '';
-let currentMode = 'member'; // member, admin, developer
 
-// ===== UTILITY FUNCTIONS =====
-async function logDeviceAccess(nim, nama) {
+// ===== LOAD HOMEPAGE CONTENT =====
+async function loadHomepageContent() {
     try {
-        const userAgent = navigator.userAgent;
-        const response = await fetch('https://api.ipify.org?format=json');
-        const data = await response.json();
+        const docRef = doc(db, 'homepage', 'content');
+        const docSnap = await getDoc(docRef);
         
-        await addDoc(collection(db, 'deviceLogs'), {
-            nim,
-            nama,
-            ip: data.ip,
-            device: userAgent,
-            loginAt: Timestamp.now()
-        });
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            console.log('✅ Homepage data loaded:', data);
+            
+            // Update homepage
+            document.getElementById('latarBelakang').textContent = data.latarBelakang || 'Belum ada data';
+            document.getElementById('sosmedInstagram').textContent = data.sosmedInstagram || '-';
+            document.getElementById('sosmedTiktok').textContent = data.sosmedTiktok || '-';
+            
+            // Update dashboard home
+            const dashboardLatar = document.getElementById('homepageLatarBelakang');
+            if (dashboardLatar) {
+                dashboardLatar.textContent = data.latarBelakang || 'Belum ada data';
+            }
+        } else {
+            console.log('❌ Document "content" tidak ditemukan!');
+            document.getElementById('latarBelakang').textContent = 'Data tidak tersedia';
+        }
     } catch (error) {
-        console.error('Error logging device:', error);
+        console.error('❌ Error loading homepage:', error);
+        document.getElementById('latarBelakang').textContent = 'Error memuat data';
     }
 }
 
-function getWITATime() {
-    const now = new Date();
-    const witaOffset = 8 * 60; // WITA = UTC+8
-    const localOffset = now.getTimezoneOffset();
-    const witaTime = new Date(now.getTime() + (witaOffset + localOffset) * 60000);
-    return witaTime;
-}
-
-// ===== NAVIGATION FUNCTIONS =====
+// ===== NAVIGATION =====
 function showPage(pageId) {
     document.querySelectorAll('.page').forEach(page => {
         page.classList.remove('active');
@@ -139,19 +88,17 @@ function showPage(pageId) {
 }
 
 window.showLoginPage = function(mode) {
-    currentMode = mode;
     const title = document.getElementById('loginTitle');
     const passwordGroup = document.getElementById('passwordGroup');
     
     if (mode === 'admin') {
         title.textContent = 'Login Admin';
         passwordGroup.style.display = 'block';
-    } else if (mode === 'developer') {
-        title.textContent = 'Login Developer';
-        passwordGroup.style.display = 'block';
+        document.getElementById('loginForm').dataset.mode = 'admin';
     } else {
         title.textContent = 'Login Anggota';
         passwordGroup.style.display = 'none';
+        document.getElementById('loginForm').dataset.mode = 'member';
     }
     
     showPage('loginPage');
@@ -168,38 +115,25 @@ window.logout = function() {
 }
 
 // ===== LOGIN HANDLER =====
-document.getElementById('loginForm').addEventListener('submit', async function(e) {
+document.getElementById('loginForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
     const nim = document.getElementById('nimInput').value.trim();
     const password = document.getElementById('passwordInput').value;
+    const mode = this.dataset.mode;
     
-    if (currentMode === 'developer') {
-        if (password === '060972' && nim === '230101050652') {
-            currentUser = dataAnggota[nim];
-            currentUser.nim = nim;
-            currentUser.mode = 'developer';
-            await logDeviceAccess(nim, currentUser.nama);
-            loadDashboard();
-        } else {
-            alert('NIM atau Password salah!');
-        }
-    } else if (currentMode === 'admin') {
-        if (password === 'karya rija' && ['230101050652', '230101050763', '230101050276'].includes(nim)) {
-            currentUser = dataAnggota[nim];
-            currentUser.nim = nim;
-            currentUser.mode = 'admin';
-            await logDeviceAccess(nim, currentUser.nama);
+    console.log('🔐 Login attempt:', { nim, mode });
+    
+    if (mode === 'admin') {
+        if (password === 'karya rija' && dataAnggota[nim] && dataAnggota[nim].role === 'admin') {
+            currentUser = { ...dataAnggota[nim], nim, mode: 'admin' };
             loadDashboard();
         } else {
             alert('NIM atau Password admin salah!');
         }
     } else {
         if (dataAnggota[nim]) {
-            currentUser = dataAnggota[nim];
-            currentUser.nim = nim;
-            currentUser.mode = 'member';
-            await logDeviceAccess(nim, currentUser.nama);
+            currentUser = { ...dataAnggota[nim], nim, mode: 'member' };
             loadDashboard();
         } else {
             alert('NIM tidak terdaftar!');
@@ -208,21 +142,20 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
 });
 
 function loadDashboard() {
+    console.log('✅ Login successful:', currentUser);
+    
     document.getElementById('userName').textContent = currentUser.nama;
     document.getElementById('userNim').textContent = currentUser.nim;
     
-    // Show menu based on role
+    // Show admin menu if admin
     if (currentUser.mode === 'admin') {
         document.getElementById('adminMenu').style.display = 'block';
-    }
-    if (currentUser.mode === 'developer') {
-        document.getElementById('devMenu').style.display = 'block';
-        document.getElementById('adminMenu').style.display = 'block';
+    } else {
+        document.getElementById('adminMenu').style.display = 'none';
     }
     
     showPage('dashboard');
     showSection('home');
-    loadTotalAnggota();
 }
 
 // ===== SECTION NAVIGATION =====
@@ -235,21 +168,14 @@ window.showSection = function(sectionName) {
         'home': 'homeSection',
         'cp': 'cpSection',
         'jadwal': 'jadwalSection',
-        'absensi': 'absensiSection',
-        'kalender': 'kalenderSection',
-        'upload-file': 'uploadFileSection',
-        'edit-homepage': 'editHomepageSection',
-        'device-logs': 'deviceLogsSection'
+        'edit-homepage': 'editHomepageSection'
     };
     
     if (sections[sectionName]) {
         document.getElementById(sections[sectionName]).classList.add('active');
         
-        // Load data for specific sections
         if (sectionName === 'jadwal') loadJadwalAdmin();
-        if (sectionName === 'absensi') loadAbsensi();
-        if (sectionName === 'device-logs') loadDeviceLogs();
-        if (sectionName === 'kalender') loadKalenderBesar();
+        if (sectionName === 'edit-homepage') loadEditHomepage();
     }
 }
 
@@ -298,54 +224,64 @@ document.getElementById('todoForm').addEventListener('submit', async function(e)
         createdAt: Timestamp.now()
     };
     
+    console.log('📝 Adding todo:', todoData);
+    
     try {
-        await addDoc(collection(db, 'todos'), todoData);
+        const docRef = await addDoc(collection(db, 'todos'), todoData);
+        console.log('✅ Todo added with ID:', docRef.id);
         alert('To-Do berhasil ditambahkan!');
         document.getElementById('todoForm').reset();
-        
-        // Schedule notification (H-3 jam)
-        scheduleNotification(todoData, 3);
-        
         loadTodoList();
     } catch (error) {
-        console.error('Error adding todo:', error);
-        alert('Gagal menambahkan to-do');
+        console.error('❌ Error adding todo:', error);
+        alert('Gagal menambahkan to-do: ' + error.message);
     }
 });
 
 async function loadTodoList() {
-    const q = query(
-        collection(db, 'todos'),
-        where('divisi', '==', currentDivisi),
-        orderBy('createdAt', 'desc')
-    );
+    console.log('📋 Loading todos for divisi:', currentDivisi);
     
-    const querySnapshot = await getDocs(q);
-    
-    const todoPenting = document.getElementById('todoPenting');
-    const todoSedang = document.getElementById('todoSedang');
-    const todoTidak = document.getElementById('todoTidak');
-    const todoSelesai = document.getElementById('todoSelesai');
-    
-    todoPenting.innerHTML = '';
-    todoSedang.innerHTML = '';
-    todoTidak.innerHTML = '';
-    todoSelesai.innerHTML = '';
-    
-    querySnapshot.forEach((docSnap) => {
-        const todo = docSnap.data();
-        const todoElement = createTodoElement(todo, docSnap.id);
+    try {
+        const q = query(
+            collection(db, 'todos'),
+            where('divisi', '==', currentDivisi)
+        );
         
-        if (todo.selesai) {
-            todoSelesai.appendChild(todoElement);
-        } else if (todo.prioritas === 'Penting dan mendesak') {
-            todoPenting.appendChild(todoElement);
-        } else if (todo.prioritas === 'Sedang') {
-            todoSedang.appendChild(todoElement);
-        } else {
-            todoTidak.appendChild(todoElement);
+        const querySnapshot = await getDocs(q);
+        console.log('✅ Found', querySnapshot.size, 'todos');
+        
+        const todoPenting = document.getElementById('todoPenting');
+        const todoSedang = document.getElementById('todoSedang');
+        const todoTidak = document.getElementById('todoTidak');
+        const todoSelesai = document.getElementById('todoSelesai');
+        
+        todoPenting.innerHTML = '';
+        todoSedang.innerHTML = '';
+        todoTidak.innerHTML = '';
+        todoSelesai.innerHTML = '';
+        
+        if (querySnapshot.empty) {
+            todoPenting.innerHTML = '<p class="empty-message">Belum ada to-do</p>';
         }
-    });
+        
+        querySnapshot.forEach((docSnap) => {
+            const todo = docSnap.data();
+            const todoElement = createTodoElement(todo, docSnap.id);
+            
+            if (todo.selesai) {
+                todoSelesai.appendChild(todoElement);
+            } else if (todo.prioritas === 'Penting dan mendesak') {
+                todoPenting.appendChild(todoElement);
+            } else if (todo.prioritas === 'Sedang') {
+                todoSedang.appendChild(todoElement);
+            } else {
+                todoTidak.appendChild(todoElement);
+            }
+        });
+    } catch (error) {
+        console.error('❌ Error loading todos:', error);
+        document.getElementById('todoPenting').innerHTML = '<p class="error-message">Error memuat data: ' + error.message + '</p>';
+    }
 }
 
 function createTodoElement(todo, id) {
@@ -356,13 +292,13 @@ function createTodoElement(todo, id) {
         <div class="todo-info">
             <h4>${todo.namaKegiatan}</h4>
             <p>📅 ${todo.tanggal} | ⏰ ${todo.waktu} WITA</p>
-            <p>${todo.deskripsi}</p>
+            <p>${todo.deskripsi || '-'}</p>
         </div>
         <div class="todo-actions">
-            <button class="icon-btn" onclick="toggleSelesai('${id}', ${!todo.selesai})">
+            <button class="icon-btn" onclick="toggleSelesai('${id}', ${!todo.selesai})" title="${todo.selesai ? 'Tandai belum selesai' : 'Tandai selesai'}">
                 ${todo.selesai ? '↩️' : '✅'}
             </button>
-            <button class="icon-btn" onclick="editTodo('${id}')">✏️</button>
+            <button class="icon-btn" onclick="deleteTodo('${id}')" title="Hapus">🗑️</button>
         </div>
     `;
     
@@ -372,111 +308,96 @@ function createTodoElement(todo, id) {
 window.toggleSelesai = async function(id, selesai) {
     try {
         await updateDoc(doc(db, 'todos', id), { selesai });
+        console.log('✅ Todo updated:', id);
         loadTodoList();
     } catch (error) {
-        console.error('Error toggling selesai:', error);
+        console.error('❌ Error toggling selesai:', error);
+        alert('Gagal update status: ' + error.message);
     }
 }
 
-// ===== CONTACT PERSON =====
-window.callContact = function(phone, nim) {
-    // Show urgent notification modal
-    const modal = document.getElementById('notificationModal');
-    const message = document.getElementById('notifMessage');
-    
-    message.textContent = `Anggota menghubungi Anda! NIM: ${nim}`;
-    modal.classList.add('active');
-    
-    // Try to initiate call (requires user permission)
-    window.location.href = `tel:${phone}`;
-    
-    // Send push notification to target device (requires Firebase Cloud Messaging)
-    sendPushNotification(nim, 'PANGGILAN DARURAT', 'Ada anggota yang menghubungi Anda!');
+window.deleteTodo = async function(id) {
+    if (confirm('Hapus to-do ini?')) {
+        try {
+            await deleteDoc(doc(db, 'todos', id));
+            console.log('✅ Todo deleted:', id);
+            loadTodoList();
+        } catch (error) {
+            console.error('❌ Error deleting todo:', error);
+            alert('Gagal menghapus: ' + error.message);
+        }
+    }
 }
 
-window.answerNotification = function() {
-    document.getElementById('notificationModal').classList.remove('active');
-}
-
-// ===== HELPER FUNCTIONS =====
-function scheduleNotification(todoData, hoursBeforeISBN) {
-    // Implementation for scheduling notifications
-    // This would typically use Firebase Cloud Messaging
-    console.log(`Notification scheduled for ${todoData.namaKegiatan} - H-${hoursBeforeISBN} hours`);
-}
-
-async function sendPushNotification(targetNim, title, body) {
-    // Implementation for push notifications
-    // Requires Firebase Cloud Messaging setup
-    console.log(`Push notification sent to ${targetNim}: ${title}`);
-}
-
-async function loadTotalAnggota() {
-    document.getElementById('totalAnggota').textContent = Object.keys(dataAnggota).length;
-}
-
+// ===== JADWAL ADMIN =====
 async function loadJadwalAdmin() {
-    const q = query(collection(db, 'jadwalAdmin'), orderBy('tanggal', 'asc'));
-    const querySnapshot = await getDocs(q);
-    
-    const jadwalList = document.getElementById('jadwalList');
-    jadwalList.innerHTML = '';
-    
-    querySnapshot.forEach((docSnap) => {
-        const jadwal = docSnap.data();
-        const div = document.createElement('div');
-        div.className = 'card';
-        div.innerHTML = `
-            <h3>${jadwal.judul}</h3>
-            <p>📅 ${jadwal.tanggal} | ⏰ ${jadwal.waktu} WITA</p>
-            <p>${jadwal.deskripsi}</p>
-        `;
-        jadwalList.appendChild(div);
-    });
+    try {
+        const querySnapshot = await getDocs(collection(db, 'jadwalAdmin'));
+        const jadwalList = document.getElementById('jadwalList');
+        
+        jadwalList.innerHTML = '';
+        
+        if (querySnapshot.empty) {
+            jadwalList.innerHTML = '<p class="empty-message">Belum ada jadwal dari admin</p>';
+            return;
+        }
+        
+        querySnapshot.forEach((docSnap) => {
+            const jadwal = docSnap.data();
+            const div = document.createElement('div');
+            div.className = 'card';
+            div.innerHTML = `
+                <h3>${jadwal.judul}</h3>
+                <p>📅 ${jadwal.tanggal} | ⏰ ${jadwal.waktu} WITA</p>
+                <p>${jadwal.deskripsi}</p>
+            `;
+            jadwalList.appendChild(div);
+        });
+    } catch (error) {
+        console.error('❌ Error loading jadwal:', error);
+        document.getElementById('jadwalList').innerHTML = '<p class="error-message">Error memuat jadwal</p>';
+    }
 }
 
-async function loadAbsensi() {
-    // Load absensi data from Firebase
-    const absensiTable = document.getElementById('absensiTable');
-    absensiTable.innerHTML = '<p>Data absensi akan ditampilkan di sini...</p>';
+// ===== EDIT HOMEPAGE =====
+async function loadEditHomepage() {
+    try {
+        const docRef = doc(db, 'homepage', 'content');
+        const docSnap = await getDoc(docRef);
+        
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            document.getElementById('editLatarBelakang').value = data.latarBelakang || '';
+            document.getElementById('editInstagram').value = data.sosmedInstagram || '';
+            document.getElementById('editTiktok').value = data.sosmedTiktok || '';
+        }
+    } catch (error) {
+        console.error('❌ Error loading edit homepage:', error);
+    }
 }
 
-window.downloadAbsensi = function() {
-    alert('Fitur download PDF akan segera tersedia');
-}
+document.getElementById('homepageForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const data = {
+        latarBelakang: document.getElementById('editLatarBelakang').value,
+        sosmedInstagram: document.getElementById('editInstagram').value,
+        sosmedTiktok: document.getElementById('editTiktok').value
+    };
+    
+    try {
+        await updateDoc(doc(db, 'homepage', 'content'), data);
+        alert('Homepage berhasil diupdate!');
+        loadHomepageContent();
+    } catch (error) {
+        console.error('❌ Error updating homepage:', error);
+        alert('Gagal update: ' + error.message);
+    }
+});
 
-async function loadDeviceLogs() {
-    const q = query(collection(db, 'deviceLogs'), orderBy('loginAt', 'desc'));
-    const querySnapshot = await getDocs(q);
-    
-    const logsTable = document.getElementById('logsTable');
-    logsTable.innerHTML = '<table><tr><th>NIM</th><th>Nama</th><th>IP</th><th>Device</th><th>Login At</th></tr>';
-    
-    querySnapshot.forEach((docSnap) => {
-        const log = docSnap.data();
-        const row = `<tr>
-            <td>${log.nim}</td>
-            <td>${log.nama}</td>
-            <td>${log.ip}</td>
-            <td>${log.device.substring(0, 50)}...</td>
-            <td>${log.loginAt.toDate().toLocaleString('id-ID')}</td>
-        </tr>`;
-        logsTable.innerHTML += row;
-    });
-    
-    logsTable.innerHTML += '</table>';
-}
-
-async function loadKalenderBesar() {
-    // Load all todos for calendar view
-    const q = query(collection(db, 'todos'), orderBy('tanggal', 'asc'));
-    const querySnapshot = await getDocs(q);
-    
-    const kalenderBesar = document.getElementById('kalenderBesar');
-    kalenderBesar.innerHTML = '<p>Kalender besar akan ditampilkan di sini dengan semua to-do dari semua divisi...</p>';
-}
-
-// Initialize homepage on load
+// ===== INIT =====
 window.addEventListener('load', function() {
+    console.log('🚀 App loaded!');
     showPage('homepage');
+    loadHomepageContent();
 });
