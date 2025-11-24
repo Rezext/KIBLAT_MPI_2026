@@ -1,8 +1,10 @@
 // ===== GLOBAL VARIABLES =====
 let currentUser = null;
-let currentUserRole = null; // 'anggota', 'admin', atau 'developer'
+let currentUserRole = null;
 let todoData = {};
 let currentDivisi = null;
+let jadwalAdmin = [];
+let absensiData = {};
 
 // Divisi list dengan emoji dan nama lengkap
 const divisiInfo = {
@@ -21,42 +23,14 @@ Object.keys(divisiInfo).forEach(divisi => {
     todoData[divisi] = [];
 });
 
-// Jadwal dari Admin (contoh data)
-let jadwalAdmin = [
-    {
-        id: 1,
-        judul: 'Rapat Koordinasi Semua Divisi',
-        tanggal: '2025-12-01',
-        waktu: '14:00',
-        tempat: 'Ruang Sidang Gedung A',
-        deskripsi: 'Rapat pembahasan timeline kegiatan KIBLAT MPI 2026'
-    },
-    {
-        id: 2,
-        judul: 'Deadline Proposal Sponsorship',
-        tanggal: '2025-12-05',
-        waktu: '23:59',
-        tempat: 'Online',
-        deskripsi: 'Pengumpulan proposal ke divisi Humas'
-    }
-];
+// ===== FIREBASE HELPERS =====
+function showLoading() {
+    document.getElementById('loadingOverlay').style.display = 'flex';
+}
 
-// Data Absensi (contoh)
-let absensiData = {
-    tanggal: '2025-11-24',
-    acara: 'Rapat Koordinasi Perdana',
-    hadir: [
-        { nim: '230101050652', nama: 'AHMAD RIJANI', waktu: '14:05' },
-        { nim: '230101050763', nama: 'AIDA MUSLIMAH', waktu: '14:03' },
-        { nim: '230101050654', nama: 'ALYA MUFIDA', waktu: '14:10' }
-    ],
-    izin: [
-        { nim: '230101050276', nama: 'WARDATUSHOFIA', keterangan: 'Sakit' }
-    ],
-    alpha: [
-        { nim: '230101050650', nama: 'AHMAD MAULANA' }
-    ]
-};
+function hideLoading() {
+    document.getElementById('loadingOverlay').style.display = 'none';
+}
 
 // ===== INITIALIZATION =====
 document.addEventListener('DOMContentLoaded', function() {
@@ -67,7 +41,201 @@ document.addEventListener('DOMContentLoaded', function() {
     initTodoForm();
     initModals();
     initSidebarLinks();
+    
+    // Load initial data dari Firebase
+    loadAllDataFromFirebase();
 });
+
+// ===== FIREBASE: LOAD ALL DATA =====
+async function loadAllDataFromFirebase() {
+    showLoading();
+    try {
+        await loadTodosFromFirebase();
+        await loadJadwalFromFirebase();
+        await loadAbsensiFromFirebase();
+        console.log('✅ All data loaded from Firebase');
+    } catch (error) {
+        console.error('❌ Error loading data:', error);
+    } finally {
+        hideLoading();
+    }
+}
+
+// ===== FIREBASE: TODOS =====
+async function loadTodosFromFirebase() {
+    try {
+        const snapshot = await todoCollection.get();
+        
+        // Reset todoData
+        Object.keys(divisiInfo).forEach(divisi => {
+            todoData[divisi] = [];
+        });
+        
+        // Load data
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const divisi = data.divisi;
+            
+            if (todoData[divisi]) {
+                todoData[divisi].push({
+                    id: doc.id,
+                    ...data
+                });
+            }
+        });
+        
+        console.log('✅ Todos loaded from Firebase');
+    } catch (error) {
+        console.error('❌ Error loading todos:', error);
+    }
+}
+
+async function saveTodoToFirebase(divisi, todo) {
+    showLoading();
+    try {
+        const docData = {
+            divisi: divisi,
+            nama: todo.nama,
+            prioritas: todo.prioritas,
+            tanggal: todo.tanggal,
+            waktu: todo.waktu,
+            deskripsi: todo.deskripsi,
+            completed: todo.completed || false,
+            createdBy: todo.createdBy,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        const docRef = await todoCollection.add(docData);
+        
+        // Update local data dengan Firebase ID
+        todo.id = docRef.id;
+        
+        console.log('✅ Todo saved to Firebase:', docRef.id);
+        return docRef.id;
+    } catch (error) {
+        console.error('❌ Error saving todo:', error);
+        alert('❌ Gagal menyimpan data. Cek koneksi internet Anda.');
+    } finally {
+        hideLoading();
+    }
+}
+
+async function updateTodoInFirebase(todoId, updates) {
+    showLoading();
+    try {
+        await todoCollection.doc(todoId).update(updates);
+        console.log('✅ Todo updated in Firebase:', todoId);
+    } catch (error) {
+        console.error('❌ Error updating todo:', error);
+        alert('❌ Gagal update data. Cek koneksi internet Anda.');
+    } finally {
+        hideLoading();
+    }
+}
+
+async function deleteTodoFromFirebase(todoId) {
+    showLoading();
+    try {
+        await todoCollection.doc(todoId).delete();
+        console.log('✅ Todo deleted from Firebase:', todoId);
+    } catch (error) {
+        console.error('❌ Error deleting todo:', error);
+        alert('❌ Gagal hapus data. Cek koneksi internet Anda.');
+    } finally {
+        hideLoading();
+    }
+}
+
+// ===== FIREBASE: JADWAL =====
+async function loadJadwalFromFirebase() {
+    try {
+        const snapshot = await jadwalCollection.orderBy('tanggal', 'asc').get();
+        
+        jadwalAdmin = [];
+        snapshot.forEach(doc => {
+            jadwalAdmin.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+        
+        console.log('✅ Jadwal loaded from Firebase');
+    } catch (error) {
+        console.error('❌ Error loading jadwal:', error);
+    }
+}
+
+async function saveJadwalToFirebase(jadwal) {
+    showLoading();
+    try {
+        const docRef = await jadwalCollection.add(jadwal);
+        console.log('✅ Jadwal saved to Firebase:', docRef.id);
+        await loadJadwalFromFirebase();
+        return docRef.id;
+    } catch (error) {
+        console.error('❌ Error saving jadwal:', error);
+        alert('❌ Gagal menyimpan jadwal.');
+    } finally {
+        hideLoading();
+    }
+}
+
+async function deleteJadwalFromFirebase(jadwalId) {
+    showLoading();
+    try {
+        await jadwalCollection.doc(jadwalId).delete();
+        console.log('✅ Jadwal deleted from Firebase:', jadwalId);
+        await loadJadwalFromFirebase();
+    } catch (error) {
+        console.error('❌ Error deleting jadwal:', error);
+        alert('❌ Gagal hapus jadwal.');
+    } finally {
+        hideLoading();
+    }
+}
+
+// ===== FIREBASE: ABSENSI =====
+async function loadAbsensiFromFirebase() {
+    try {
+        const snapshot = await absensiCollection.orderBy('tanggal', 'desc').limit(1).get();
+        
+        if (!snapshot.empty) {
+            const doc = snapshot.docs[0];
+            absensiData = {
+                id: doc.id,
+                ...doc.data()
+            };
+        } else {
+            // Default data jika belum ada
+            absensiData = {
+                tanggal: '2025-11-24',
+                acara: 'Belum ada data absensi',
+                hadir: [],
+                izin: [],
+                alpha: []
+            };
+        }
+        
+        console.log('✅ Absensi loaded from Firebase');
+    } catch (error) {
+        console.error('❌ Error loading absensi:', error);
+    }
+}
+
+async function saveAbsensiToFirebase(data) {
+    showLoading();
+    try {
+        const docRef = await absensiCollection.add(data);
+        console.log('✅ Absensi saved to Firebase:', docRef.id);
+        await loadAbsensiFromFirebase();
+        return docRef.id;
+    } catch (error) {
+        console.error('❌ Error saving absensi:', error);
+        alert('❌ Gagal menyimpan absensi.');
+    } finally {
+        hideLoading();
+    }
+}
 
 // ===== LOGIN TAB NAVIGATION =====
 function initLoginTabs() {
@@ -78,14 +246,11 @@ function initLoginTabs() {
         btn.addEventListener('click', function() {
             const loginType = this.dataset.login;
             
-            // Remove active from all tabs
             tabButtons.forEach(b => b.classList.remove('active'));
             this.classList.add('active');
             
-            // Hide all forms
             loginForms.forEach(form => form.classList.remove('active'));
             
-            // Show selected form
             if (loginType === 'anggota') {
                 document.getElementById('loginFormAnggota').classList.add('active');
             } else if (loginType === 'admin') {
@@ -94,7 +259,6 @@ function initLoginTabs() {
                 document.getElementById('loginFormDeveloper').classList.add('active');
             }
             
-            // Clear error message
             document.getElementById('errorMessage').style.display = 'none';
         });
     });
@@ -149,27 +313,21 @@ function initLoginForms() {
 function loginSuccess() {
     const userData = MEMBERS_DATA.members[currentUser];
     
-    // Update sidebar header
     document.getElementById('userName').textContent = userData.nama;
     document.getElementById('userNim').textContent = `NIM: ${currentUser}`;
     
-    // Render divisi menu
     renderDivisiMenu(userData.divisi);
     
-    // Set divisi pertama sebagai active
     currentDivisi = userData.divisi[0];
     
-    // Hide login, show dashboard
     document.getElementById('loginPage').style.display = 'none';
     document.getElementById('mainContainer').style.display = 'flex';
     
-    // Clear login forms
     document.getElementById('nimAnggota').value = '';
     document.getElementById('nimAdmin').value = '';
     document.getElementById('passwordAdmin').value = '';
     document.getElementById('passwordDeveloper').value = '';
     
-    // Load first divisi
     switchDivisi(currentDivisi);
 }
 
@@ -208,20 +366,16 @@ function renderDivisiMenu(divisiList) {
 function switchDivisi(divisi) {
     currentDivisi = divisi;
     
-    // Update active menu
     document.querySelectorAll('.divisi-link').forEach(link => {
         link.classList.remove('active');
     });
     document.querySelector(`[data-divisi="${divisi}"]`).classList.add('active');
     
-    // Update title
     const info = divisiInfo[divisi];
     document.getElementById('divisiTitle').textContent = `${info.emoji} ${info.nama}`;
     
-    // Reset to input tab
     document.querySelector('[data-tab="input"]').click();
     
-    // Refresh display
     displayResults();
 }
 
@@ -248,30 +402,34 @@ function initTabs() {
 
 // ===== TODO FORM =====
 function initTodoForm() {
-    document.getElementById('todoForm').addEventListener('submit', function(e) {
+    document.getElementById('todoForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         
         const todo = {
-            id: Date.now(),
             nama: document.getElementById('namaKegiatan').value,
             prioritas: document.querySelector('input[name="prioritas"]:checked').value,
             tanggal: document.getElementById('tanggal').value,
             waktu: document.getElementById('waktu').value,
             deskripsi: document.getElementById('deskripsi').value,
             completed: false,
-            createdBy: currentUser,
-            createdAt: new Date().toISOString()
+            createdBy: currentUser
         };
         
-        todoData[currentDivisi].push(todo);
+        // Save to Firebase
+        const todoId = await saveTodoToFirebase(currentDivisi, todo);
         
-        this.reset();
-        alert('✅ To-Do berhasil ditambahkan!');
-        
-        // Auto switch to hasil tab
-        setTimeout(() => {
-            document.querySelector('[data-tab="hasil"]').click();
-        }, 500);
+        if (todoId) {
+            // Add to local data
+            todo.id = todoId;
+            todoData[currentDivisi].push(todo);
+            
+            this.reset();
+            alert('✅ To-Do berhasil ditambahkan!');
+            
+            setTimeout(() => {
+                document.querySelector('[data-tab="hasil"]').click();
+            }, 500);
+        }
     });
 }
 
@@ -305,28 +463,30 @@ function renderTodos(todos, priority) {
             </div>
             <div class="todo-actions">
                 ${!todo.completed ? `
-                    <button class="btn-check" onclick="toggleComplete(${todo.id}, '${currentDivisi}', true)">✓ Selesai</button>
-                    <button class="btn-edit" onclick="editTodo(${todo.id}, '${currentDivisi}')">✏️ Edit</button>
+                    <button class="btn-check" onclick="toggleComplete('${todo.id}', '${currentDivisi}', true)">✓ Selesai</button>
+                    <button class="btn-edit" onclick="editTodo('${todo.id}', '${currentDivisi}')">✏️ Edit</button>
                 ` : `
-                    <button class="btn-uncheck" onclick="toggleComplete(${todo.id}, '${currentDivisi}', false)">↻ Batal</button>
+                    <button class="btn-uncheck" onclick="toggleComplete('${todo.id}', '${currentDivisi}', false)">↻ Batal</button>
                 `}
-                <button class="btn-delete" onclick="deleteTodo(${todo.id}, '${currentDivisi}')">🗑️ Hapus</button>
+                <button class="btn-delete" onclick="deleteTodo('${todo.id}', '${currentDivisi}')">🗑️ Hapus</button>
             </div>
         </div>
     `).join('');
 }
 
 // ===== TODO ACTIONS =====
-function toggleComplete(id, divisi, status) {
+async function toggleComplete(id, divisi, status) {
     const todo = todoData[divisi].find(t => t.id === id);
     if (todo) {
         todo.completed = status;
+        await updateTodoInFirebase(id, { completed: status });
         displayResults();
     }
 }
 
-function deleteTodo(id, divisi) {
+async function deleteTodo(id, divisi) {
     if (confirm('Yakin ingin menghapus?')) {
+        await deleteTodoFromFirebase(id);
         todoData[divisi] = todoData[divisi].filter(todo => todo.id !== id);
         displayResults();
     }
@@ -342,6 +502,8 @@ function editTodo(id, divisi) {
     document.getElementById('waktu').value = todo.waktu;
     document.getElementById('deskripsi').value = todo.deskripsi;
     
+    // Delete dari Firebase dan local
+    deleteTodoFromFirebase(id);
     todoData[divisi] = todoData[divisi].filter(t => t.id !== id);
     
     document.querySelector('[data-tab="input"]').click();
@@ -359,7 +521,6 @@ function initLogout() {
             document.getElementById('loginPage').style.display = 'flex';
             document.getElementById('todoForm').reset();
             
-            // Reset ke tab login anggota
             document.querySelectorAll('.login-tab-btn')[0].click();
         }
     });
@@ -367,26 +528,22 @@ function initLogout() {
 
 // ===== SIDEBAR LINKS =====
 function initSidebarLinks() {
-    // Download File
     document.getElementById('downloadFile').addEventListener('click', function(e) {
         e.preventDefault();
         alert('🚧 Fitur download file akan segera hadir!');
     });
     
-    // Contact Person
     document.getElementById('contactPerson').addEventListener('click', function(e) {
         e.preventDefault();
         openModal('cpModal');
     });
     
-    // Jadwal Admin
     document.getElementById('jadwalAdmin').addEventListener('click', function(e) {
         e.preventDefault();
         renderJadwal();
         openModal('jadwalModal');
     });
     
-    // Absensi
     document.getElementById('absensiLink').addEventListener('click', function(e) {
         e.preventDefault();
         renderAbsensi();
@@ -396,21 +553,18 @@ function initSidebarLinks() {
 
 // ===== MODALS =====
 function initModals() {
-    // Close buttons
     document.querySelectorAll('.close').forEach(btn => {
         btn.addEventListener('click', function() {
             this.closest('.modal').style.display = 'none';
         });
     });
     
-    // Click outside to close
     window.addEventListener('click', function(e) {
         if (e.target.classList.contains('modal')) {
             e.target.style.display = 'none';
         }
     });
     
-    // CP items - click to call
     document.querySelectorAll('.cp-item').forEach(item => {
         item.addEventListener('click', function() {
             const phone = this.dataset.phone;
@@ -418,7 +572,6 @@ function initModals() {
         });
     });
     
-    // Download Absensi
     document.getElementById('downloadAbsensi').addEventListener('click', function() {
         alert('📥 Fitur download PDF absensi akan segera hadir!');
     });
@@ -451,11 +604,15 @@ function renderJadwal() {
 function renderAbsensi() {
     const absensiContent = document.getElementById('absensiContent');
     
+    const hadirCount = absensiData.hadir?.length || 0;
+    const izinCount = absensiData.izin?.length || 0;
+    const alphaCount = absensiData.alpha?.length || 0;
+    
     absensiContent.innerHTML = `
         <h3 style="margin-bottom: 15px;">Acara: ${escapeHtml(absensiData.acara)}</h3>
         <p style="margin-bottom: 20px; color: #7f8c8d;">Tanggal: ${formatDate(absensiData.tanggal)}</p>
         
-        <h4 style="margin-top: 20px; margin-bottom: 10px; color: #27ae60;">✅ Hadir (${absensiData.hadir.length})</h4>
+        <h4 style="margin-top: 20px; margin-bottom: 10px; color: #27ae60;">✅ Hadir (${hadirCount})</h4>
         <table class="absensi-table">
             <thead>
                 <tr>
@@ -466,7 +623,7 @@ function renderAbsensi() {
                 </tr>
             </thead>
             <tbody>
-                ${absensiData.hadir.map((m, i) => `
+                ${(absensiData.hadir || []).map((m, i) => `
                     <tr>
                         <td>${i + 1}</td>
                         <td>${m.nim}</td>
@@ -477,7 +634,7 @@ function renderAbsensi() {
             </tbody>
         </table>
         
-        <h4 style="margin-top: 20px; margin-bottom: 10px; color: #f39c12;">📝 Izin (${absensiData.izin.length})</h4>
+        <h4 style="margin-top: 20px; margin-bottom: 10px; color: #f39c12;">📝 Izin (${izinCount})</h4>
         <table class="absensi-table">
             <thead>
                 <tr>
@@ -488,7 +645,7 @@ function renderAbsensi() {
                 </tr>
             </thead>
             <tbody>
-                ${absensiData.izin.map((m, i) => `
+                ${(absensiData.izin || []).map((m, i) => `
                     <tr>
                         <td>${i + 1}</td>
                         <td>${m.nim}</td>
@@ -499,7 +656,7 @@ function renderAbsensi() {
             </tbody>
         </table>
         
-        <h4 style="margin-top: 20px; margin-bottom: 10px; color: #e74c3c;">❌ Alpha (${absensiData.alpha.length})</h4>
+        <h4 style="margin-top: 20px; margin-bottom: 10px; color: #e74c3c;">❌ Alpha (${alphaCount})</h4>
         <table class="absensi-table">
             <thead>
                 <tr>
@@ -509,7 +666,7 @@ function renderAbsensi() {
                 </tr>
             </thead>
             <tbody>
-                ${absensiData.alpha.map((m, i) => `
+                ${(absensiData.alpha || []).map((m, i) => `
                     <tr>
                         <td>${i + 1}</td>
                         <td>${m.nim}</td>
@@ -533,6 +690,7 @@ function formatDate(dateStr) {
 }
 
 function escapeHtml(text) {
+    if (!text) return '';
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
