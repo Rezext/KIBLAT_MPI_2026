@@ -3,46 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KIBLAT MPI 2026 - Sistem Manajemen Divisi</title>
+    <title>KIBLAT MPI 2026</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Homepage Landing -->
+    <!-- Homepage -->
     <div id="homepage" class="page active">
         <header class="hero">
             <div class="container">
                 <h1>KIBLAT MPI 2026</h1>
                 <p class="subtitle">Kompetisi Ilmiah dan Budaya Lintas Atletik Terampil</p>
+                <p class="system-subtitle">Sistem Manajemen Divisi</p>
                 <div class="auth-buttons">
                     <button onclick="showLoginPage('member')" class="btn btn-primary">Login Anggota</button>
                     <button onclick="showLoginPage('admin')" class="btn btn-secondary">Login Admin</button>
-                    <button onclick="showLoginPage('developer')" class="btn btn-ghost">Developer</button>
                 </div>
             </div>
         </header>
 
         <section class="content-section">
             <div class="container">
-                <div class="grid-2">
-                    <div class="card">
-                        <h2>📖 Latar Belakang</h2>
-                        <p id="latarBelakang">KIBLAT MPI 2026 merupakan program kerja tahunan...</p>
-                    </div>
-                    <div class="card">
-                        <h2>📸 Dokumentasi</h2>
-                        <div id="dokumentasi" class="doc-grid"></div>
-                    </div>
+                <div class="card">
+                    <h2>📖 Latar Belakang</h2>
+                    <p id="latarBelakang">Loading...</p>
                 </div>
-
-                <div class="grid-2">
-                    <div class="card">
-                        <h2>🌐 Sosial Media</h2>
-                        <div id="sosmed" class="sosmed-links"></div>
-                    </div>
-                    <div class="card">
-                        <h2>📰 Berita Terkait</h2>
-                        <div id="berita" class="berita-list"></div>
+                <div class="card">
+                    <h2>🌐 Sosial Media</h2>
+                    <div id="sosmedLinks">
+                        <p>Instagram: <span id="sosmedInstagram">-</span></p>
+                        <p>TikTok: <span id="sosmedTiktok">-</span></p>
                     </div>
                 </div>
             </div>
@@ -77,7 +67,7 @@
         </div>
     </div>
 
-    <!-- Dashboard Member/Admin -->
+    <!-- Dashboard -->
     <div id="dashboard" class="page">
         <div class="dashboard-layout">
             <!-- Sidebar -->
@@ -85,8 +75,8 @@
                 <div class="sidebar-header">
                     <div class="logo">🎯</div>
                     <h3>KIBLAT MPI 2026</h3>
-                    <p id="userName">Ahmad Rijani</p>
-                    <p id="userNim" class="text-sm">230101050652</p>
+                    <p id="userName">-</p>
+                    <p id="userNim" class="text-sm">-</p>
                 </div>
 
                 <nav class="sidebar-nav">
@@ -98,12 +88,6 @@
                     </a>
                     <a href="#" onclick="showSection('jadwal')" class="nav-item">
                         <span>📅</span> Jadwal Admin
-                    </a>
-                    <a href="#" onclick="showSection('absensi')" class="nav-item">
-                        <span>✅</span> Absensi
-                    </a>
-                    <a href="#" class="nav-item disabled">
-                        <span>📥</span> Download File
                     </a>
                     
                     <div class="divisi-section">
@@ -118,25 +102,10 @@
                         <a href="#" onclick="showDivisi('Perleng')" class="nav-item">Perleng</a>
                     </div>
 
-                    <!-- Admin Only -->
                     <div id="adminMenu" style="display: none;">
                         <p class="nav-label">ADMIN</p>
-                        <a href="#" onclick="showSection('kalender')" class="nav-item">
-                            <span>📆</span> Kalender Besar
-                        </a>
-                        <a href="#" onclick="showSection('upload-file')" class="nav-item">
-                            <span>📤</span> Upload File
-                        </a>
                         <a href="#" onclick="showSection('edit-homepage')" class="nav-item">
                             <span>✏️</span> Edit Homepage
-                        </a>
-                    </div>
-
-                    <!-- Developer Only -->
-                    <div id="devMenu" style="display: none;">
-                        <p class="nav-label">DEVELOPER</p>
-                        <a href="#" onclick="showSection('device-logs')" class="nav-item">
-                            <span>🖥️</span> Device Logs
                         </a>
                     </div>
                 </nav>
@@ -152,12 +121,7 @@
                     <div class="info-cards">
                         <div class="card">
                             <h3>📋 Ringkasan Program Kerja</h3>
-                            <p>KIBLAT MPI 2026 adalah kegiatan yang bertujuan...</p>
-                        </div>
-                        <div class="card">
-                            <h3>👥 Status Anggota</h3>
-                            <p>Total Anggota: <strong id="totalAnggota">66</strong></p>
-                            <p>Divisi Aktif: <strong>8</strong></p>
+                            <p id="homepageLatarBelakang">Loading...</p>
                         </div>
                     </div>
                 </div>
@@ -166,25 +130,25 @@
                 <div id="cpSection" class="content-section">
                     <h1>📞 Contact Person</h1>
                     <div class="cp-list">
-                        <div class="cp-card" onclick="callContact('089514459128', '230101050678')">
+                        <div class="cp-card">
                             <h3>Penanggung Jawab</h3>
                             <p class="cp-number">089514459128</p>
-                            <button class="btn btn-primary">📞 Hubungi</button>
+                            <a href="tel:089514459128" class="btn btn-primary">📞 Hubungi</a>
                         </div>
-                        <div class="cp-card" onclick="callContact('082150658810', '230101050652')">
+                        <div class="cp-card">
                             <h3>Ketua Pelaksana</h3>
                             <p class="cp-number">082150658810</p>
-                            <button class="btn btn-primary">📞 Hubungi</button>
+                            <a href="tel:082150658810" class="btn btn-primary">📞 Hubungi</a>
                         </div>
-                        <div class="cp-card" onclick="callContact('0895400459070', '230101050763')">
+                        <div class="cp-card">
                             <h3>Sekretaris Pelaksana</h3>
                             <p class="cp-number">0895400459070</p>
-                            <button class="btn btn-primary">📞 Hubungi</button>
+                            <a href="tel:0895400459070" class="btn btn-primary">📞 Hubungi</a>
                         </div>
-                        <div class="cp-card" onclick="callContact('081349702553', '230101050276')">
+                        <div class="cp-card">
                             <h3>Bendahara Pelaksana</h3>
                             <p class="cp-number">081349702553</p>
-                            <button class="btn btn-primary">📞 Hubungi</button>
+                            <a href="tel:081349702553" class="btn btn-primary">📞 Hubungi</a>
                         </div>
                     </div>
                 </div>
@@ -195,16 +159,9 @@
                     <div id="jadwalList" class="jadwal-list"></div>
                 </div>
 
-                <!-- Absensi Section -->
-                <div id="absensiSection" class="content-section">
-                    <h1>✅ Data Absensi</h1>
-                    <button onclick="downloadAbsensi()" class="btn btn-secondary">📥 Download PDF</button>
-                    <div id="absensiTable"></div>
-                </div>
-
                 <!-- Divisi Section -->
                 <div id="divisiSection" class="content-section">
-                    <h1 id="divisiTitle">Divisi Acara</h1>
+                    <h1 id="divisiTitle">Divisi</h1>
                     
                     <div class="tabs">
                         <button onclick="showTab('input')" class="tab-btn active">Input/Edit</button>
@@ -267,29 +224,6 @@
                     </div>
                 </div>
 
-                <!-- Admin: Kalender Besar -->
-                <div id="kalenderSection" class="content-section">
-                    <h1>📆 Kalender Besar - Semua To-Do</h1>
-                    <div id="kalenderBesar"></div>
-                </div>
-
-                <!-- Admin: Upload File -->
-                <div id="uploadFileSection" class="content-section">
-                    <h1>📤 Upload File Penting</h1>
-                    <form id="uploadForm">
-                        <div class="input-group">
-                            <label>Nama File</label>
-                            <input type="text" id="fileName" required>
-                        </div>
-                        <div class="input-group">
-                            <label>File</label>
-                            <input type="file" id="fileInput" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Upload</button>
-                    </form>
-                    <div id="fileList"></div>
-                </div>
-
                 <!-- Admin: Edit Homepage -->
                 <div id="editHomepageSection" class="content-section">
                     <h1>✏️ Edit Homepage</h1>
@@ -299,33 +233,20 @@
                             <textarea id="editLatarBelakang" rows="5"></textarea>
                         </div>
                         <div class="input-group">
-                            <label>Link Berita (JSON)</label>
-                            <textarea id="editBerita" rows="3"></textarea>
+                            <label>Instagram</label>
+                            <input type="text" id="editInstagram" placeholder="@kiblatmpi2026">
+                        </div>
+                        <div class="input-group">
+                            <label>TikTok</label>
+                            <input type="text" id="editTiktok" placeholder="@kiblatmpi">
                         </div>
                         <button type="submit" class="btn btn-primary">Simpan</button>
                     </form>
-                </div>
-
-                <!-- Developer: Device Logs -->
-                <div id="deviceLogsSection" class="content-section">
-                    <h1>🖥️ Device & IP Logs</h1>
-                    <div id="logsTable"></div>
                 </div>
             </main>
         </div>
     </div>
 
-    <!-- Notification Modal -->
-    <div id="notificationModal" class="modal">
-        <div class="modal-content urgent">
-            <h2>🚨 PANGGILAN DARURAT</h2>
-            <p id="notifMessage"></p>
-            <button onclick="answerNotification()" class="btn btn-danger btn-block">JAWAB</button>
-        </div>
-    </div>
-
-    <!-- Scripts -->
-    <script type="module" src="firebase-config.js"></script>
     <script type="module" src="script.js"></script>
 </body>
 </html>
