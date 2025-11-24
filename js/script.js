@@ -42,7 +42,6 @@ document.addEventListener('DOMContentLoaded', function() {
     initModals();
     initSidebarLinks();
     
-    // Load initial data dari Firebase
     loadAllDataFromFirebase();
 });
 
@@ -66,12 +65,10 @@ async function loadTodosFromFirebase() {
     try {
         const snapshot = await todoCollection.get();
         
-        // Reset todoData
         Object.keys(divisiInfo).forEach(divisi => {
             todoData[divisi] = [];
         });
         
-        // Load data
         snapshot.forEach(doc => {
             const data = doc.data();
             const divisi = data.divisi;
@@ -107,7 +104,6 @@ async function saveTodoToFirebase(divisi, todo) {
         
         const docRef = await todoCollection.add(docData);
         
-        // Update local data dengan Firebase ID
         todo.id = docRef.id;
         
         console.log('✅ Todo saved to Firebase:', docRef.id);
@@ -165,35 +161,6 @@ async function loadJadwalFromFirebase() {
     }
 }
 
-async function saveJadwalToFirebase(jadwal) {
-    showLoading();
-    try {
-        const docRef = await jadwalCollection.add(jadwal);
-        console.log('✅ Jadwal saved to Firebase:', docRef.id);
-        await loadJadwalFromFirebase();
-        return docRef.id;
-    } catch (error) {
-        console.error('❌ Error saving jadwal:', error);
-        alert('❌ Gagal menyimpan jadwal.');
-    } finally {
-        hideLoading();
-    }
-}
-
-async function deleteJadwalFromFirebase(jadwalId) {
-    showLoading();
-    try {
-        await jadwalCollection.doc(jadwalId).delete();
-        console.log('✅ Jadwal deleted from Firebase:', jadwalId);
-        await loadJadwalFromFirebase();
-    } catch (error) {
-        console.error('❌ Error deleting jadwal:', error);
-        alert('❌ Gagal hapus jadwal.');
-    } finally {
-        hideLoading();
-    }
-}
-
 // ===== FIREBASE: ABSENSI =====
 async function loadAbsensiFromFirebase() {
     try {
@@ -206,7 +173,6 @@ async function loadAbsensiFromFirebase() {
                 ...doc.data()
             };
         } else {
-            // Default data jika belum ada
             absensiData = {
                 tanggal: '2025-11-24',
                 acara: 'Belum ada data absensi',
@@ -219,21 +185,6 @@ async function loadAbsensiFromFirebase() {
         console.log('✅ Absensi loaded from Firebase');
     } catch (error) {
         console.error('❌ Error loading absensi:', error);
-    }
-}
-
-async function saveAbsensiToFirebase(data) {
-    showLoading();
-    try {
-        const docRef = await absensiCollection.add(data);
-        console.log('✅ Absensi saved to Firebase:', docRef.id);
-        await loadAbsensiFromFirebase();
-        return docRef.id;
-    } catch (error) {
-        console.error('❌ Error saving absensi:', error);
-        alert('❌ Gagal menyimpan absensi.');
-    } finally {
-        hideLoading();
     }
 }
 
@@ -266,7 +217,6 @@ function initLoginTabs() {
 
 // ===== LOGIN HANDLERS =====
 function initLoginForms() {
-    // Login Anggota
     document.getElementById('loginFormAnggota').addEventListener('submit', function(e) {
         e.preventDefault();
         const nim = document.getElementById('nimAnggota').value.trim();
@@ -280,7 +230,6 @@ function initLoginForms() {
         }
     });
     
-    // Login Admin
     document.getElementById('loginFormAdmin').addEventListener('submit', function(e) {
         e.preventDefault();
         const nim = document.getElementById('nimAdmin').value.trim();
@@ -295,7 +244,6 @@ function initLoginForms() {
         }
     });
     
-    // Login Developer
     document.getElementById('loginFormDeveloper').addEventListener('submit', function(e) {
         e.preventDefault();
         const password = document.getElementById('passwordDeveloper').value;
@@ -415,11 +363,9 @@ function initTodoForm() {
             createdBy: currentUser
         };
         
-        // Save to Firebase
         const todoId = await saveTodoToFirebase(currentDivisi, todo);
         
         if (todoId) {
-            // Add to local data
             todo.id = todoId;
             todoData[currentDivisi].push(todo);
             
@@ -432,7 +378,6 @@ function initTodoForm() {
         }
     });
 }
-
 // ===== DISPLAY RESULTS =====
 function displayResults() {
     const todos = todoData[currentDivisi];
@@ -502,7 +447,6 @@ function editTodo(id, divisi) {
     document.getElementById('waktu').value = todo.waktu;
     document.getElementById('deskripsi').value = todo.deskripsi;
     
-    // Delete dari Firebase dan local
     deleteTodoFromFirebase(id);
     todoData[divisi] = todoData[divisi].filter(t => t.id !== id);
     
@@ -570,10 +514,6 @@ function initModals() {
             const phone = this.dataset.phone;
             window.location.href = `tel:${phone}`;
         });
-    });
-    
-    document.getElementById('downloadAbsensi').addEventListener('click', function() {
-        alert('📥 Fitur download PDF absensi akan segera hadir!');
     });
 }
 
@@ -696,5 +636,19 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+// ===== PWA SERVICE WORKER REGISTRATION =====
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+            .then(registration => {
+                console.log('✅ Service Worker registered:', registration);
+            })
+            .catch(error => {
+                console.log('❌ Service Worker registration failed:', error);
+            });
+    });
+}
+
 // Initialize
 document.getElementById('inputTab').style.display = 'block';
+
