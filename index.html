@@ -4,568 +4,55 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KIBLAT MPI 2026</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f5f5;
-            color: #333;
-        }
-
-        /* LOGIN PAGE */
-        .login-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        .login-box {
-            background: white;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-        }
-
-        .login-box h1 {
-            margin-bottom: 10px;
-            color: #667eea;
-            font-size: 28px;
-        }
-
-        .login-box p {
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 14px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: #333;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
-            transition: border-color 0.3s;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
-        }
-
-        .login-btn {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        .login-btn:hover {
-            transform: translateY(-2px);
-        }
-
-        .error-message {
-            color: #e74c3c;
-            font-size: 13px;
-            margin-bottom: 15px;
-            display: none;
-        }
-
-        /* MAIN DASHBOARD */
-        .main-container {
-            display: none;
-            flex-height: 100vh;
-        }
-
-        .sidebar {
-            width: 250px;
-            background: #2c3e50;
-            color: white;
-            padding: 20px;
-            min-height: 100vh;
-            overflow-y: auto;
-        }
-
-        .sidebar-header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .sidebar-header h2 {
-            font-size: 18px;
-            margin-bottom: 5px;
-        }
-
-        .sidebar-header p {
-            font-size: 12px;
-            color: #bdc3c7;
-        }
-
-        .sidebar-menu {
-            list-style: none;
-        }
-
-        .sidebar-menu li {
-            margin-bottom: 10px;
-        }
-
-        .sidebar-menu a {
-            display: block;
-            padding: 12px 15px;
-            color: #bdc3c7;
-            text-decoration: none;
-            border-radius: 5px;
-            cursor: not-allowed;
-            opacity: 0.7;
-            font-size: 14px;
-        }
-
-        .sidebar-menu a:hover {
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .divisi-menu {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .divisi-menu h3 {
-            font-size: 12px;
-            color: #95a5a6;
-            text-transform: uppercase;
-            margin-bottom: 15px;
-            letter-spacing: 1px;
-        }
-
-        .divisi-menu a {
-            display: block;
-            padding: 10px 15px;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-bottom: 8px;
-            font-size: 13px;
-            transition: all 0.3s;
-            border-left: 3px solid transparent;
-        }
-
-        .divisi-menu a:hover {
-            background: #34495e;
-            border-left-color: #667eea;
-            padding-left: 12px;
-        }
-
-        .divisi-menu a.active {
-            background: #667eea;
-            border-left-color: #667eea;
-            color: white;
-        }
-
-        .content-area {
-            flex: 1;
-            padding: 30px;
-            overflow-y: auto;
-        }
-
-        .content-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #ecf0f1;
-        }
-
-        .content-header h1 {
-            font-size: 32px;
-            color: #2c3e50;
-        }
-
-        .logout-btn {
-            padding: 10px 20px;
-            background: #e74c3c;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: background 0.3s;
-        }
-
-        .logout-btn:hover {
-            background: #c0392b;
-        }
-
-        /* TAB NAVIGATION */
-        .tab-nav {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 25px;
-            border-bottom: 2px solid #ecf0f1;
-        }
-
-        .tab-btn {
-            padding: 12px 20px;
-            background: none;
-            border: none;
-            border-bottom: 3px solid transparent;
-            color: #7f8c8d;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-            font-size: 14px;
-        }
-
-        .tab-btn:hover {
-            color: #667eea;
-        }
-
-        .tab-btn.active {
-            color: #667eea;
-            border-bottom-color: #667eea;
-        }
-
-        /* INPUT FORM */
-        .input-section {
-            background: white;
-            padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            margin-bottom: 30px;
-        }
-
-        .input-section h3 {
-            margin-bottom: 20px;
-            color: #2c3e50;
-            font-size: 18px;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-        .form-row.full {
-            grid-template-columns: 1fr;
-        }
-
-        .form-field {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-field label {
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #2c3e50;
-            font-size: 14px;
-        }
-
-        .form-field input,
-        .form-field textarea,
-        .form-field select {
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
-            font-family: inherit;
-            transition: border-color 0.3s;
-        }
-
-        .form-field input:focus,
-        .form-field textarea:focus,
-        .form-field select:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
-        }
-
-        .form-field textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        .priority-group {
-            display: flex;
-            gap: 15px;
-            margin-top: 8px;
-        }
-
-        .priority-radio {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .priority-radio input[type="radio"] {
-            cursor: pointer;
-            width: 18px;
-            height: 18px;
-        }
-
-        .priority-radio label {
-            margin: 0;
-            cursor: pointer;
-            font-weight: 400;
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 25px;
-        }
-
-        .btn-submit,
-        .btn-reset {
-            padding: 12px 30px;
-            border: none;
-            border-radius: 5px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 14px;
-        }
-
-        .btn-submit {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .btn-reset {
-            background: #ecf0f1;
-            color: #7f8c8d;
-        }
-
-        .btn-reset:hover {
-            background: #bdc3c7;
-        }
-
-        .btn-delete {
-            padding: 8px 15px;
-            background: #e74c3c;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: background 0.3s;
-        }
-
-        .btn-delete:hover {
-            background: #c0392b;
-        }
-
-        .btn-edit {
-            padding: 8px 15px;
-            background: #3498db;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: background 0.3s;
-            margin-right: 5px;
-        }
-
-        .btn-edit:hover {
-            background: #2980b9;
-        }
-
-        /* RESULTS DISPLAY */
-        .results-section {
-            display: none;
-        }
-
-        .results-section.active {
-            display: block;
-        }
-
-        .priority-container {
-            margin-bottom: 30px;
-        }
-
-        .priority-header {
-            padding: 15px;
-            background: #ecf0f1;
-            border-radius: 5px;
-            margin-bottom: 15px;
-            font-weight: 600;
-            color: #2c3e50;
-            font-size: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .priority-header::before {
-            content: '';
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #667eea;
-        }
-
-        .priority-header.urgent::before {
-            background: #e74c3c;
-        }
-
-        .priority-header.medium::before {
-            background: #f39c12;
-        }
-
-        .priority-header.low::before {
-            background: #27ae60;
-        }
-
-        .todo-item {
-            background: white;
-            padding: 18px;
-            border-radius: 5px;
-            margin-bottom: 12px;
-            border-left: 4px solid #667eea;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s;
-        }
-
-        .todo-item:hover {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .todo-item.urgent {
-            border-left-color: #e74c3c;
-        }
-
-        .todo-item.medium {
-            border-left-color: #f39c12;
-        }
-
-        .todo-item.low {
-            border-left-color: #27ae60;
-        }
-
-        .todo-content {
-            margin-bottom: 12px;
-        }
-
-        .todo-title {
-            font-weight: 600;
-            font-size: 15px;
-            color: #2c3e50;
-            margin-bottom: 5px;
-        }
-
-        .todo-deadline {
-            font-size: 12px;
-            color: #7f8c8d;
-            margin-bottom: 3px;
-        }
-
-        .todo-time {
-            font-size: 12px;
-            color: #95a5a6;
-        }
-
-        .todo-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 50px 20px;
-            color: #7f8c8d;
-        }
-
-        .empty-state p {
-            font-size: 16px;
-            margin-bottom: 0;
-        }
-
-        /* RESPONSIVE */
-        @media (max-width: 768px) {
-            .main-container {
-                flex-direction: column;
-            }
-
-            .sidebar {
-                width: 100%;
-                min-height: auto;
-            }
-
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-
-            .sidebar-menu a,
-            .divisi-menu a {
-                font-size: 12px;
-            }
-
-            .content-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 15px;
-            }
-
-            .logout-btn {
-                width: 100%;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
 <!-- LOGIN PAGE -->
 <div id="loginPage" class="login-container">
     <div class="login-box">
-        <h1>🎓 KIBLAT</h1>
-        <p>MPI 2026 - Sistem Manajemen Divisi</p>
+        <h1>🎓 KIBLAT MPI 2026</h1>
+        <p>Kompetisi Ilmiah dan Budaya Lintas Atletik Terampil</p>
+        <p class="subtitle">Sistem Manajemen Divisi</p>
+        
         <div id="errorMessage" class="error-message"></div>
-        <form id="loginForm">
+        
+        <!-- Tab Login -->
+        <div class="login-tabs">
+            <button class="login-tab-btn active" data-login="anggota">Login Anggota</button>
+            <button class="login-tab-btn" data-login="admin">Login Admin</button>
+            <button class="login-tab-btn" data-login="developer">Login Developer</button>
+        </div>
+
+        <!-- Form Login Anggota -->
+        <form id="loginFormAnggota" class="login-form active">
             <div class="form-group">
-                <label for="nim">NIM</label>
-                <input type="text" id="nim" placeholder="Masukkan NIM Anda" required>
+                <label for="nimAnggota">NIM</label>
+                <input type="text" id="nimAnggota" placeholder="Masukkan NIM Anda" required>
             </div>
             <button type="submit" class="login-btn">Login</button>
+        </form>
+
+        <!-- Form Login Admin -->
+        <form id="loginFormAdmin" class="login-form">
+            <div class="form-group">
+                <label for="nimAdmin">NIM</label>
+                <input type="text" id="nimAdmin" placeholder="Masukkan NIM Admin" required>
+            </div>
+            <div class="form-group">
+                <label for="passwordAdmin">Password</label>
+                <input type="password" id="passwordAdmin" placeholder="Masukkan Password" required>
+            </div>
+            <button type="submit" class="login-btn">Login Admin</button>
+        </form>
+
+        <!-- Form Login Developer -->
+        <form id="loginFormDeveloper" class="login-form">
+            <div class="form-group">
+                <label for="passwordDeveloper">Password Developer</label>
+                <input type="password" id="passwordDeveloper" placeholder="Masukkan Password Developer" required>
+            </div>
+            <button type="submit" class="login-btn">Login Developer</button>
         </form>
     </div>
 </div>
@@ -576,31 +63,28 @@
     <div class="sidebar">
         <div class="sidebar-header">
             <h2>🎓 KIBLAT</h2>
+            <p id="userName">-</p>
             <p id="userNim">NIM: -</p>
         </div>
 
         <ul class="sidebar-menu">
-            <li><a href="#">📥 Download file penting</a></li>
+            <li><a href="#" id="downloadFile">📥 Download file penting</a></li>
             <li><a href="#">🏠 Home</a></li>
+            <li><a href="#" id="contactPerson">📞 Contact Person</a></li>
+            <li><a href="#" id="jadwalAdmin">📅 Jadwal dari Admin</a></li>
+            <li><a href="#" id="absensiLink">📋 Hasil Absensi</a></li>
         </ul>
 
         <div class="divisi-menu">
             <h3>Divisi Saya</h3>
-            <a href="#" class="divisi-link active" data-divisi="acara">📅 Acara</a>
-            <a href="#" class="divisi-link" data-divisi="sponsorship">💰 Sponsorship</a>
-            <a href="#" class="divisi-link" data-divisi="promosi">📢 Promosi</a>
-            <a href="#" class="divisi-link" data-divisi="kestapen">🔐 Kestapen</a>
-            <a href="#" class="divisi-link" data-divisi="pdd">🎯 PDD</a>
-            <a href="#" class="divisi-link" data-divisi="keamanan">🛡️ Keamanan</a>
-            <a href="#" class="divisi-link" data-divisi="konsumsi">🍽️ Konsumsi</a>
-            <a href="#" class="divisi-link" data-divisi="perleng">📦 Perleng</a>
+            <div id="divisiList"></div>
         </div>
     </div>
 
     <!-- CONTENT AREA -->
     <div class="content-area">
         <div class="content-header">
-            <h1 id="divisiTitle">📅 Acara</h1>
+            <h1 id="divisiTitle">📅 Dashboard</h1>
             <button id="logoutBtn" class="logout-btn">Logout</button>
         </div>
 
@@ -644,7 +128,7 @@
                         <input type="date" id="tanggal" required>
                     </div>
                     <div class="form-field">
-                        <label for="waktu">Waktu</label>
+                        <label for="waktu">Waktu (WITA)</label>
                         <input type="time" id="waktu" required>
                     </div>
                 </div>
@@ -679,214 +163,62 @@
                 <div class="priority-header low">✓ Tidak</div>
                 <div id="lowList"></div>
             </div>
+
+            <div id="completedContainer" class="priority-container">
+                <div class="priority-header completed">✅ Selesai</div>
+                <div id="completedList"></div>
+            </div>
         </div>
     </div>
 </div>
 
-<script>
-    // Data storage (in-memory, tidak pakai localStorage)
-    let currentUser = null;
-    let todoData = {};
-
-    // Initialize dengan 8 divisi
-    const divisiList = ['acara', 'sponsorship', 'promosi', 'kestapen', 'pdd', 'keamanan', 'konsumsi', 'perleng'];
-    
-    divisiList.forEach(divisi => {
-        todoData[divisi] = [];
-    });
-
-    let currentDivisi = 'acara';
-
-    // LOGIN HANDLER
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const nim = document.getElementById('nim').value.trim();
-        const correctNim = '230101050652';
-
-        if (nim === correctNim) {
-            currentUser = nim;
-            document.getElementById('loginPage').style.display = 'none';
-            document.getElementById('mainContainer').style.display = 'flex';
-            document.getElementById('userNim').textContent = `NIM: ${nim}`;
-            document.getElementById('nim').value = '';
-        } else {
-            const errorMsg = document.getElementById('errorMessage');
-            errorMsg.textContent = '❌ NIM tidak valid. Gunakan NIM: 230101050652';
-            errorMsg.style.display = 'block';
-            setTimeout(() => {
-                errorMsg.style.display = 'none';
-            }, 3000);
-        }
-    });
-
-    // LOGOUT HANDLER
-    document.getElementById('logoutBtn').addEventListener('click', function() {
-        currentUser = null;
-        document.getElementById('mainContainer').style.display = 'none';
-        document.getElementById('loginPage').style.display = 'flex';
-        document.getElementById('todoForm').reset();
-        document.getElementById('urgentList').innerHTML = '';
-        document.getElementById('mediumList').innerHTML = '';
-        document.getElementById('lowList').innerHTML = '';
-    });
-
-    // DIVISI NAVIGATION
-    document.querySelectorAll('.divisi-link').forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const divisi = this.dataset.divisi;
-            switchDivisi(divisi);
-        });
-    });
-
-    function switchDivisi(divisi) {
-        currentDivisi = divisi;
-        
-        // Update active menu
-        document.querySelectorAll('.divisi-link').forEach(link => {
-            link.classList.remove('active');
-        });
-        document.querySelector(`[data-divisi="${divisi}"]`).classList.add('active');
-
-        // Update title
-        const titles = {
-            'acara': '📅 Acara',
-            'sponsorship': '💰 Sponsorship',
-            'promosi': '📢 Promosi',
-            'kestapen': '🔐 Kestapen',
-            'pdd': '🎯 PDD',
-            'keamanan': '🛡️ Keamanan',
-            'konsumsi': '🍽️ Konsumsi',
-            'perleng': '📦 Perleng'
-        };
-        document.getElementById('divisiTitle').textContent = titles[divisi];
-
-        // Reset to input tab
-        document.querySelector('[data-tab="input"]').click();
-
-        // Refresh display
-        displayResults();
-    }
-
-    // TAB NAVIGATION
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const tab = this.dataset.tab;
-            
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-
-            if (tab === 'input') {
-                document.getElementById('inputTab').style.display = 'block';
-                document.getElementById('hasilTab').classList.remove('active');
-            } else {
-                document.getElementById('inputTab').style.display = 'none';
-                document.getElementById('hasilTab').classList.add('active');
-                displayResults();
-            }
-        });
-    });
-
-    // TODO FORM SUBMIT
-    document.getElementById('todoForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-
-        const todo = {
-            id: Date.now(),
-            nama: document.getElementById('namaKegiatan').value,
-            prioritas: document.querySelector('input[name="prioritas"]:checked').value,
-            tanggal: document.getElementById('tanggal').value,
-            waktu: document.getElementById('waktu').value,
-            deskripsi: document.getElementById('deskripsi').value
-        };
-
-        todoData[currentDivisi].push(todo);
-        
-        this.reset();
-        alert('✅ To-Do berhasil ditambahkan!');
-
-        // Auto switch to hasil tab
-        setTimeout(() => {
-            document.querySelector('[data-tab="hasil"]').click();
-        }, 500);
-    });
-
-    // DISPLAY RESULTS
-    function displayResults() {
-        const todos = todoData[currentDivisi];
-        
-        const urgent = todos.filter(t => t.prioritas === 'urgent');
-        const medium = todos.filter(t => t.prioritas === 'medium');
-        const low = todos.filter(t => t.prioritas === 'low');
-
-        document.getElementById('urgentList').innerHTML = renderTodos(urgent, 'urgent');
-        document.getElementById('mediumList').innerHTML = renderTodos(medium, 'medium');
-        document.getElementById('lowList').innerHTML = renderTodos(low, 'low');
-    }
-
-    function renderTodos(todos, priority) {
-        if (todos.length === 0) {
-            return '<div class="empty-state"><p>Tidak ada item</p></div>';
-        }
-
-        return todos.map(todo => `
-            <div class="todo-item ${priority}">
-                <div class="todo-content">
-                    <div class="todo-title">${escapeHtml(todo.nama)}</div>
-                    <div class="todo-deadline">📅 ${formatDate(todo.tanggal)}</div>
-                    <div class="todo-time">⏰ ${todo.waktu}</div>
-                    ${todo.deskripsi ? `<div style="margin-top: 8px; font-size: 13px; color: #555;">📝 ${escapeHtml(todo.deskripsi)}</div>` : ''}
-                </div>
-                <div class="todo-actions">
-                    <button class="btn-edit" onclick="editTodo(${todo.id}, '${currentDivisi}')">✏️ Edit</button>
-                    <button class="btn-delete" onclick="deleteTodo(${todo.id}, '${currentDivisi}')">🗑️ Hapus</button>
-                </div>
+<!-- Modal Contact Person -->
+<div id="cpModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>📞 Contact Person</h2>
+        <div class="cp-list">
+            <div class="cp-item" data-phone="089514459128">
+                <span class="cp-name">Penanggung Jawab</span>
+                <span class="cp-phone">089514459128</span>
             </div>
-        `).join('');
-    }
+            <div class="cp-item" data-phone="082150658810">
+                <span class="cp-name">Ketua Pelaksana</span>
+                <span class="cp-phone">082150658810</span>
+            </div>
+            <div class="cp-item" data-phone="0895400459070">
+                <span class="cp-name">Sekretaris Pelaksana</span>
+                <span class="cp-phone">0895400459070</span>
+            </div>
+            <div class="cp-item" data-phone="081349702553">
+                <span class="cp-name">Bendahara Pelaksana</span>
+                <span class="cp-phone">081349702553</span>
+            </div>
+        </div>
+    </div>
+</div>
 
-    function deleteTodo(id, divisi) {
-        if (confirm('Yakin ingin menghapus?')) {
-            todoData[divisi] = todoData[divisi].filter(todo => todo.id !== id);
-            displayResults();
-        }
-    }
+<!-- Modal Jadwal Admin -->
+<div id="jadwalModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>📅 Jadwal dari Admin</h2>
+        <div id="jadwalList"></div>
+    </div>
+</div>
 
-    function editTodo(id, divisi) {
-        const todo = todoData[divisi].find(t => t.id === id);
-        if (!todo) return;
+<!-- Modal Absensi -->
+<div id="absensiModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>📋 Hasil Absensi</h2>
+        <button id="downloadAbsensi" class="btn-download">📥 Download PDF</button>
+        <div id="absensiContent"></div>
+    </div>
+</div>
 
-        document.getElementById('namaKegiatan').value = todo.nama;
-        document.querySelector(`input[name="prioritas"][value="${todo.prioritas}"]`).checked = true;
-        document.getElementById('tanggal').value = todo.tanggal;
-        document.getElementById('waktu').value = todo.waktu;
-        document.getElementById('deskripsi').value = todo.deskripsi;
-
-        todoData[divisi] = todoData[divisi].filter(t => t.id !== id);
-
-        document.querySelector('[data-tab="input"]').click();
-        document.getElementById('namaKegiatan').focus();
-    }
-
-    function formatDate(dateStr) {
-        const date = new Date(dateStr);
-        return date.toLocaleDateString('id-ID', { 
-            weekday: 'short', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-        });
-    }
-
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-
-    // Initialize
-    document.getElementById('inputTab').style.display = 'block';
-</script>
+<script src="data/members.js"></script>
+<script src="js/script.js"></script>
 
 </body>
 </html>
