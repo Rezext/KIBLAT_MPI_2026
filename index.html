@@ -2,8 +2,21 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
     <title>KIBLAT MPI 2026</title>
+    <meta name="description" content="Kompetisi Ilmiah dan Budaya Lintas Atletik Terampil">
+    
+    <!-- Mobile Optimization -->
+    <meta name="theme-color" content="#667eea">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Stylesheet -->
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -58,7 +71,7 @@
 </div>
 
 <!-- MAIN DASHBOARD -->
-<div id="mainContainer" class="main-container" style="display: flex;">
+<div id="mainContainer" class="main-container" style="display: none;">
     <!-- SIDEBAR -->
     <div class="sidebar">
         <div class="sidebar-header">
@@ -68,11 +81,10 @@
         </div>
 
         <ul class="sidebar-menu">
-            <li><a href="#" id="downloadFile">📥 Download file penting</a></li>
-            <li><a href="#">🏠 Home</a></li>
-            <li><a href="#" id="contactPerson">📞 Contact Person</a></li>
-            <li><a href="#" id="jadwalAdmin">📅 Jadwal dari Admin</a></li>
-            <li><a href="#" id="absensiLink">📋 Hasil Absensi</a></li>
+            <li><a href="#" id="downloadFile">📥 Download</a></li>
+            <li><a href="#" id="contactPerson">📞 Contact</a></li>
+            <li><a href="#" id="jadwalAdmin">📅 Jadwal</a></li>
+            <li><a href="#" id="absensiLink">📋 Absensi</a></li>
         </ul>
 
         <div class="divisi-menu">
@@ -108,7 +120,7 @@
                         <div class="priority-group">
                             <div class="priority-radio">
                                 <input type="radio" id="penting" name="prioritas" value="urgent" required>
-                                <label for="penting">⚠️ Penting & Mendesak</label>
+                                <label for="penting">⚠️ Penting</label>
                             </div>
                             <div class="priority-radio">
                                 <input type="radio" id="sedang" name="prioritas" value="medium">
@@ -187,11 +199,11 @@
                 <span class="cp-phone">082150658810</span>
             </div>
             <div class="cp-item" data-phone="0895400459070">
-                <span class="cp-name">Sekretaris Pelaksana</span>
+                <span class="cp-name">Sekretaris</span>
                 <span class="cp-phone">0895400459070</span>
             </div>
             <div class="cp-item" data-phone="081349702553">
-                <span class="cp-name">Bendahara Pelaksana</span>
+                <span class="cp-name">Bendahara</span>
                 <span class="cp-phone">081349702553</span>
             </div>
         </div>
@@ -212,25 +224,21 @@
     <div class="modal-content">
         <span class="close">&times;</span>
         <h2>📋 Hasil Absensi</h2>
-        <button id="downloadAbsensi" class="btn-download">📥 Download PDF</button>
         <div id="absensiContent"></div>
     </div>
 </div>
 
-<script src="data/members.js"></script>
-<script src="js/script.js"></script>
-
-<!-- Firebase SDK (TAMBAHKAN INI SEBELUM SCRIPT LAINNYA) -->
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-
-<!-- Loading Indicator (TAMBAHKAN INI) -->
-<div id="loadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; display: flex; justify-content: center; align-items: center;">
+<!-- Loading Overlay -->
+<div id="loadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center;">
     <div style="background: white; padding: 30px; border-radius: 10px; text-align: center;">
         <div style="font-size: 40px; margin-bottom: 15px;">⏳</div>
         <div style="font-size: 18px; color: #667eea; font-weight: 600;">Loading...</div>
     </div>
 </div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
 <!-- Scripts -->
 <script src="data/members.js"></script>
