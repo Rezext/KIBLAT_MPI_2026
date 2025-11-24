@@ -41,6 +41,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initTodoForm();
     initModals();
     initSidebarLinks();
+    initHamburgerMenu();
     
     loadAllDataFromFirebase();
 });
@@ -378,6 +379,7 @@ function initTodoForm() {
         }
     });
 }
+
 // ===== DISPLAY RESULTS =====
 function displayResults() {
     const todos = todoData[currentDivisi];
@@ -618,6 +620,64 @@ function renderAbsensi() {
     `;
 }
 
+// ===== HAMBURGER MENU TOGGLE =====
+function initHamburgerMenu() {
+    const hamburger = document.getElementById('hamburgerBtn');
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const divisiLinks = document.querySelectorAll('.divisi-link');
+    const sidebarLinks = document.querySelectorAll('.sidebar-menu a');
+
+    function toggleSidebar() {
+        hamburger.classList.toggle('active');
+        sidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+        
+        if (sidebar.classList.contains('active')) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+    }
+
+    function closeSidebar() {
+        hamburger.classList.remove('active');
+        sidebar.classList.remove('active');
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    if (hamburger) {
+        hamburger.addEventListener('click', toggleSidebar);
+    }
+
+    if (overlay) {
+        overlay.addEventListener('click', closeSidebar);
+    }
+
+    divisiLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            if (window.innerWidth <= 768) {
+                setTimeout(closeSidebar, 300);
+            }
+        });
+    });
+
+    sidebarLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            if (window.innerWidth <= 768) {
+                setTimeout(closeSidebar, 300);
+            }
+        });
+    });
+
+    window.addEventListener('resize', function() {
+        if (window.innerWidth > 768) {
+            closeSidebar();
+        }
+    });
+}
+
 // ===== UTILITY FUNCTIONS =====
 function formatDate(dateStr) {
     const date = new Date(dateStr);
@@ -651,4 +711,3 @@ if ('serviceWorker' in navigator) {
 
 // Initialize
 document.getElementById('inputTab').style.display = 'block';
-
