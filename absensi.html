@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <title>Absensi KIBLAT MPI 2026 - TEST MODE</title>
+    <title>Absensi KIBLAT MPI 2026</title>
     
     <meta name="theme-color" content="#667eea">
     <meta name="mobile-web-app-capable" content="yes">
@@ -35,17 +35,6 @@
             max-width: 500px;
             width: 100%;
             text-align: center;
-        }
-        
-        .test-badge {
-            display: inline-block;
-            padding: 5px 15px;
-            background: #f39c12;
-            color: white;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-bottom: 15px;
         }
         
         .logo {
@@ -140,13 +129,12 @@
         }
         
         .info-box {
-            background: #fff9e6;
+            background: #e8f4fd;
             padding: 15px;
             border-radius: 8px;
             margin-top: 20px;
             font-size: 13px;
             color: #2c3e50;
-            border-left: 4px solid #f39c12;
         }
         
         .success-animation {
@@ -173,27 +161,11 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-
-        .debug-info {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            font-size: 12px;
-            color: #666;
-            text-align: left;
-        }
-
-        .debug-info h4 {
-            margin-bottom: 10px;
-            color: #2c3e50;
-        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="test-badge">🧪 TEST MODE - GPS DISABLED</div>
     <div class="logo">📋</div>
     <h1>Absensi KIBLAT</h1>
     <p class="subtitle" id="sessionTitle">Loading...</p>
@@ -212,16 +184,8 @@
         <button type="submit" class="btn-submit" id="submitBtn">✅ Absen Sekarang</button>
         
         <div class="info-box">
-            <strong>⚠️ MODE TEST AKTIF</strong><br>
-            ✓ Validasi GPS: <strong>DISABLED</strong><br>
-            ✓ Validasi Waktu: <strong>AKTIF</strong><br>
             ⏰ Waktu: <strong id="currentTime">-</strong><br>
-            📍 Lokasi: <strong>Test Mode (Bypass)</strong>
-        </div>
-
-        <div class="debug-info">
-            <h4>🔍 Debug Info:</h4>
-            <div id="debugInfo">Loading...</div>
+            📍 Lokasi: <strong id="currentLocation">Mendeteksi...</strong>
         </div>
     </form>
     
@@ -231,13 +195,6 @@
         <p style="font-size: 18px; color: #2c3e50; margin-bottom: 10px;">Selamat datang,</p>
         <p style="font-size: 24px; font-weight: 700; color: #667eea;" id="successName">-</p>
         <p style="color: #7f8c8d; margin-top: 20px; font-size: 14px;">Kehadiran Anda telah tercatat ✓</p>
-        
-        <div class="info-box" style="margin-top: 20px; background: #d5f4e6; border-left-color: #27ae60;">
-            <strong>✓ Data Tersimpan!</strong><br>
-            Session ID: <strong id="savedSessionId">-</strong><br>
-            NIM: <strong id="savedNim">-</strong><br>
-            Waktu: <strong id="savedTime">-</strong>
-        </div>
     </div>
 </div>
 
@@ -251,13 +208,13 @@
 const urlParams = new URLSearchParams(window.location.search);
 const sessionId = urlParams.get('id');
 
-// FAKE location for testing (no GPS required)
-let userLocation = {
-    latitude: -3.327028,  // UIN Antasari coordinates
-    longitude: 114.588242
-};
+// UIN Antasari Banjarmasin Kampus 1 Coordinates
+const UIN_LATITUDE = -3.327028;
+const UIN_LONGITUDE = 114.588242;
+const RADIUS_METERS = 500; // 500 meter radius
 
 let currentSession = null;
+let userLocation = null;
 
 // Init
 document.addEventListener('DOMContentLoaded', function() {
@@ -276,8 +233,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function validateAccess() {
     try {
-        console.log('🧪 TEST MODE: Validating session...');
-        
         // 1. Get session data
         const sessionDoc = await db.collection('absensi_sessions').doc(sessionId).get();
         
@@ -289,8 +244,6 @@ async function validateAccess() {
         currentSession = { id: sessionDoc.id, ...sessionDoc.data() };
         document.getElementById('sessionTitle').textContent = currentSession.acara;
         
-        console.log('✓ Session found:', currentSession);
-        
         // 2. Check time
         const now = new Date();
         const currentTime = now.getHours() * 60 + now.getMinutes(); // in minutes
@@ -299,54 +252,80 @@ async function validateAccess() {
         const startMinutes = startH * 60 + startM;
         const endMinutes = endH * 60 + endM;
         
-        console.log('⏰ Time validation:');
-        console.log('  Current time:', `${now.getHours()}:${now.getMinutes()}`, `(${currentTime} min)`);
-        console.log('  Start time:', currentSession.startTime, `(${startMinutes} min)`);
-        console.log('  End time:', currentSession.endTime, `(${endMinutes} min)`);
-        
         if (currentTime < startMinutes) {
             showError(`Absensi belum dibuka. Mulai jam ${currentSession.startTime} WITA`);
-            updateDebugInfo('❌ Terlalu awal', currentSession);
             return;
         }
         
         if (currentTime > endMinutes) {
             showError(`Absensi sudah ditutup. Berakhir jam ${currentSession.endTime} WITA`);
-            updateDebugInfo('❌ Terlalu terlambat', currentSession);
             return;
         }
         
-        console.log('✓ Time validation passed');
-        
-        // 3. GPS validation DISABLED for test
-        console.log('🧪 TEST MODE: GPS validation SKIPPED');
-        
-        // All validations passed
-        showForm();
-        updateDebugInfo('✓ Validasi berhasil', currentSession);
+        // 3. Check location
+        await validateLocation();
         
     } catch (error) {
         console.error('Error validating access:', error);
         showError('Gagal memvalidasi akses. Cek koneksi internet.');
-        updateDebugInfo('❌ Error: ' + error.message, null);
     }
 }
 
-function updateDebugInfo(status, session) {
-    const debugEl = document.getElementById('debugInfo');
-    const now = new Date();
+async function validateLocation() {
+    if (!navigator.geolocation) {
+        showError('Browser tidak mendukung GPS. Gunakan Chrome/Safari terbaru.');
+        return;
+    }
     
-    if (!debugEl) return;
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            userLocation = {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude
+            };
+            
+            const distance = calculateDistance(
+                userLocation.latitude,
+                userLocation.longitude,
+                UIN_LATITUDE,
+                UIN_LONGITUDE
+            );
+            
+            document.getElementById('currentLocation').textContent = `${Math.round(distance)}m dari kampus`;
+            
+            if (distance > RADIUS_METERS) {
+                showError(`Anda terlalu jauh dari kampus (${Math.round(distance)}m). Maksimal ${RADIUS_METERS}m.`);
+                return;
+            }
+            
+            // All validations passed
+            showForm();
+        },
+        (error) => {
+            console.error('Geolocation error:', error);
+            showError('Gagal mendeteksi lokasi. Aktifkan GPS dan izinkan akses lokasi.');
+        },
+        {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+        }
+    );
+}
+
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371e3; // Earth radius in meters
+    const φ1 = lat1 * Math.PI / 180;
+    const φ2 = lat2 * Math.PI / 180;
+    const Δφ = (lat2 - lat1) * Math.PI / 180;
+    const Δλ = (lon2 - lon1) * Math.PI / 180;
     
-    debugEl.innerHTML = `
-        <strong>Status:</strong> ${status}<br>
-        <strong>Session ID:</strong> ${sessionId || '-'}<br>
-        <strong>Acara:</strong> ${session?.acara || '-'}<br>
-        <strong>Jam Buka:</strong> ${session?.startTime || '-'} WITA<br>
-        <strong>Jam Tutup:</strong> ${session?.endTime || '-'} WITA<br>
-        <strong>Waktu Sekarang:</strong> ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')} WITA<br>
-        <strong>GPS:</strong> Disabled (Test Mode)
-    `;
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    
+    return R * c; // Distance in meters
 }
 
 function showForm() {
@@ -370,17 +349,13 @@ async function handleSubmit(e) {
     const nim = document.getElementById('nimInput').value.trim();
     const submitBtn = document.getElementById('submitBtn');
     
-    console.log('📝 Attempting to submit attendance for NIM:', nim);
-    
     // Validate NIM
     if (!MEMBERS_DATA.members[nim]) {
         alert('❌ NIM tidak terdaftar. Periksa kembali NIM Anda.');
-        console.log('❌ NIM not found in members data');
         return;
     }
     
     const memberData = MEMBERS_DATA.members[nim];
-    console.log('✓ Member found:', memberData.nama);
     
     submitBtn.disabled = true;
     submitBtn.textContent = 'Menyimpan...';
@@ -394,34 +369,25 @@ async function handleSubmit(e) {
         
         if (!existingDoc.empty) {
             alert('⚠️ Anda sudah melakukan absensi untuk sesi ini.');
-            console.log('⚠️ Already submitted');
             submitBtn.disabled = false;
             submitBtn.textContent = '✅ Absen Sekarang';
             return;
         }
-        
-        const waktu = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
         
         // Save attendance
         await db.collection('absensi_kehadiran').add({
             sessionId: sessionId,
             nim: nim,
             nama: memberData.nama,
-            waktu: waktu,
+            waktu: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
             timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            location: userLocation,
-            testMode: true  // Mark as test
+            location: userLocation
         });
-        
-        console.log('✅ Attendance saved successfully');
         
         // Show success
         document.getElementById('absensiForm').style.display = 'none';
         document.getElementById('successBox').style.display = 'block';
         document.getElementById('successName').textContent = memberData.nama;
-        document.getElementById('savedSessionId').textContent = sessionId;
-        document.getElementById('savedNim').textContent = nim;
-        document.getElementById('savedTime').textContent = waktu + ' WITA';
         
     } catch (error) {
         console.error('Error saving attendance:', error);
@@ -443,11 +409,6 @@ function updateClock() {
         clockEl.textContent = timeStr + ' WITA';
     }
 }
-
-console.log('🧪 TEST MODE ACTIVATED');
-console.log('✓ GPS validation: DISABLED');
-console.log('✓ Time validation: ENABLED');
-console.log('✓ Session ID from URL:', sessionId);
 </script>
 
 </body>
