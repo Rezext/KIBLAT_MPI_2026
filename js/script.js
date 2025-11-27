@@ -757,6 +757,55 @@ async function viewAbsensiResults(sessionId) {
     }
 }
 
+// ===== LINK ABSENSI MODAL =====
+function showAbsensiLinkModal(link, acara) {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'block';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width:600px;">
+            <span class="close" onclick="this.closest('.modal').remove()">&times;</span>
+            <h2 style="margin-bottom:20px;">🔗 Link Absensi Berhasil Dibuat!</h2>
+            
+            <div style="background:#f0f8ff;padding:20px;border-radius:8px;margin-bottom:20px;">
+                <p style="margin-bottom:10px;font-weight:600;">Acara: ${escapeHtml(acara)}</p>
+                <p style="font-size:13px;color:#666;margin-bottom:15px;">
+                    Bagikan link ini kepada seluruh panitia:
+                </p>
+                <input id="linkToCopy" type="text" value="${link}" readonly
+                       style="width:100%;padding:12px;border:2px solid #667eea;border-radius:5px;font-size:14px;margin-bottom:15px;">
+                <button onclick="copyAbsensiLink()"
+                        style="width:100%;padding:12px;background:#667eea;color:white;border:none;border-radius:5px;font-weight:600;cursor:pointer;">
+                    📋 Copy Link
+                </button>
+            </div>
+            
+            <div style="background:#fff9e6;padding:15px;border-radius:8px;border-left:4px solid #f39c12;">
+                <p style="font-size:13px;color:#666;margin-bottom:10px;"><strong>⚠️ Catatan:</strong></p>
+                <ul style="font-size:13px;color:#666;padding-left:20px;">
+                    <li>Link hanya aktif pada rentang waktu yang ditentukan.</li>
+                    <li>Akses dibatasi radius sekitar UIN Antasari untuk absensi produksi.</li>
+                </ul>
+            </div>
+            
+            <button onclick="this.closest('.modal').remove()"
+                    style="width:100%;margin-top:20px;padding:12px;background:#95a5a6;color:white;border:none;border-radius:5px;font-weight:600;cursor:pointer;">
+                Tutup
+            </button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function copyAbsensiLink() {
+    const input = document.getElementById('linkToCopy');
+    if (!input) return;
+    input.select();
+    input.setSelectionRange(0, 99999);
+    document.execCommand('copy');
+    alert('✅ Link absensi berhasil di‑copy!');
+}
+
 function showAbsensiResultsModal(session, hadir, tidakHadir) {
     const modal = document.createElement('div');
     modal.className = 'modal';
