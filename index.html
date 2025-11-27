@@ -32,7 +32,7 @@
             <li><a href="#contact" class="nav-link">Contact Person</a></li>
             <li><a href="#dokumentasi" class="nav-link">Dokumentasi</a></li>
             <li><a href="#berita" class="nav-link">Berita Terkait</a></li>
-            <li><a href="index.html" class="nav-link login-link">🔐 Login Anggota</a></li>
+            <li><a href="dashboard.html" class="nav-link login-link">🔐 Login Anggota</a></li>
             <li><a href="#" id="devEditBtn" class="nav-link dev-link">⚙️ Edit Mode</a></li>
         </ul>
     </div>
@@ -42,9 +42,9 @@
 <section id="home" class="hero">
     <div class="hero-content">
         <h1 class="hero-title" id="heroTitle">KIBLAT MPI 2026</h1>
-        <p class="hero-subtitle" id="heroSubtitle">Kompetisi Ilmiah dan Budaya Lintas Atletik Terampil</p>
+        <p class="hero-subtitle" id="heroSubtitle">Kompetisi Ilmiah dan Budaya Lintas Atlet Bertalenta</p>
         <p class="hero-desc" id="heroDesc">Event tahunan mahasiswa Manajemen Pendidikan Islam 2023 UIN Antasari Banjarmasin</p>
-        <a href="index.html" class="hero-btn">Masuk ke Sistem</a>
+        <a href="dashboard.html" class="hero-btn">Masuk ke Sistem</a>
     </div>
 </section>
 
@@ -53,7 +53,7 @@
     <div class="container">
         <h2 class="section-title">Tentang KIBLAT</h2>
         <div class="about-content" id="aboutContent">
-            <p>KIBLAT (Kompetisi Ilmiah dan Budaya Lintas Atletik Terampil) merupakan event tahunan yang diselenggarakan oleh mahasiswa Manajemen Pendidikan Islam angkatan 2023 UIN Antasari Banjarmasin.</p>
+            <p>KIBLAT (Kompetisi Ilmiah dan Budaya Lintas Atlet Bertalenta) merupakan event tahunan yang diselenggarakan oleh mahasiswa Manajemen Pendidikan Islam angkatan 2023 UIN Antasari Banjarmasin.</p>
             <p>Event ini bertujuan untuk mengembangkan potensi mahasiswa dalam bidang akademik, seni, budaya, dan olahraga melalui berbagai perlombaan dan kegiatan yang menarik.</p>
             <p>KIBLAT 2026 menghadirkan berbagai kategori lomba yang dapat diikuti oleh mahasiswa dari berbagai universitas di Indonesia.</p>
         </div>
@@ -98,7 +98,6 @@
     <div class="container">
         <h2 class="section-title">Dokumentasi</h2>
         <div class="dokumentasi-grid" id="dokumentasiGrid">
-            <!-- Content will be loaded from Firebase -->
             <div class="empty-state">
                 <p>📸 Dokumentasi akan segera hadir</p>
             </div>
@@ -111,7 +110,6 @@
     <div class="container">
         <h2 class="section-title">Berita Terkait</h2>
         <div class="berita-grid" id="beritaGrid">
-            <!-- Content will be loaded from Firebase -->
             <div class="empty-state">
                 <p>📰 Belum ada berita terkait</p>
             </div>
@@ -156,7 +154,6 @@
             <button class="edit-tab-btn" data-tab="berita">Berita</button>
         </div>
 
-        <!-- EDIT HERO -->
         <div id="editHero" class="edit-section active">
             <h3>Edit Hero Section</h3>
             <div class="form-group">
@@ -174,7 +171,6 @@
             <button class="btn-save" onclick="saveHero()">💾 Simpan Hero</button>
         </div>
 
-        <!-- EDIT ABOUT -->
         <div id="editAbout" class="edit-section">
             <h3>Edit Tentang KIBLAT</h3>
             <div class="form-group">
@@ -184,7 +180,6 @@
             <button class="btn-save" onclick="saveAbout()">💾 Simpan About</button>
         </div>
 
-        <!-- EDIT DOKUMENTASI -->
         <div id="editDokumentasi" class="edit-section">
             <h3>Tambah Dokumentasi</h3>
             <div class="form-group">
@@ -207,7 +202,6 @@
             <div id="dokList"></div>
         </div>
 
-        <!-- EDIT BERITA -->
         <div id="editBerita" class="edit-section">
             <h3>Tambah Berita Terkait</h3>
             <div class="form-group">
@@ -235,7 +229,6 @@
     </div>
 </div>
 
-<!-- Loading Overlay -->
 <div id="loadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center;">
     <div style="background: white; padding: 30px; border-radius: 10px; text-align: center;">
         <div style="font-size: 40px; margin-bottom: 15px;">⏳</div>
