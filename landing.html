@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <title>KIBLAT MPI 2026 - Kompetisi Ilmiah dan Budaya Lintas Atlet Bertalenta</title>
+    <meta name="description" content="KIBLAT MPI 2026 - Event kompetisi mahasiswa MPI UIN Antasari Banjarmasin">
+    
+    <meta name="theme-color" content="#667eea">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="css/landing.css">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+    <div class="nav-container">
+        <div class="nav-logo">
+            <h2>🎓 KIBLAT MPI 2026</h2>
+        </div>
+        <button class="nav-toggle" id="navToggle">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <ul class="nav-menu" id="navMenu">
+            <li><a href="#home" class="nav-link active">Home</a></li>
+            <li><a href="#contact" class="nav-link">Contact Person</a></li>
+            <li><a href="#dokumentasi" class="nav-link">Dokumentasi</a></li>
+            <li><a href="#berita" class="nav-link">Berita Terkait</a></li>
+            <li><a href="index.html" class="nav-link login-link">🔐 Login Anggota</a></li>
+            <li><a href="#" id="devEditBtn" class="nav-link dev-link">⚙️ Edit Mode</a></li>
+        </ul>
+    </div>
+</nav>
+
+<!-- HERO SECTION -->
+<section id="home" class="hero">
+    <div class="hero-content">
+        <h1 class="hero-title" id="heroTitle">KIBLAT MPI 2026</h1>
+        <p class="hero-subtitle" id="heroSubtitle">Kompetisi Ilmiah dan Budaya Lintas Atletik Terampil</p>
+        <p class="hero-desc" id="heroDesc">Event tahunan mahasiswa Manajemen Pendidikan Islam 2023 UIN Antasari Banjarmasin</p>
+        <a href="index.html" class="hero-btn">Masuk ke Sistem</a>
+    </div>
+</section>
+
+<!-- ABOUT SECTION -->
+<section class="about">
+    <div class="container">
+        <h2 class="section-title">Tentang KIBLAT</h2>
+        <div class="about-content" id="aboutContent">
+            <p>KIBLAT (Kompetisi Ilmiah dan Budaya Lintas Atletik Terampil) merupakan event tahunan yang diselenggarakan oleh mahasiswa Manajemen Pendidikan Islam angkatan 2023 UIN Antasari Banjarmasin.</p>
+            <p>Event ini bertujuan untuk mengembangkan potensi mahasiswa dalam bidang akademik, seni, budaya, dan olahraga melalui berbagai perlombaan dan kegiatan yang menarik.</p>
+            <p>KIBLAT 2026 menghadirkan berbagai kategori lomba yang dapat diikuti oleh mahasiswa dari berbagai universitas di Indonesia.</p>
+        </div>
+    </div>
+</section>
+
+<!-- CONTACT PERSON -->
+<section id="contact" class="contact">
+    <div class="container">
+        <h2 class="section-title">Contact Person</h2>
+        <div class="contact-grid">
+            <div class="contact-card">
+                <div class="contact-icon">👤</div>
+                <h3>Penanggung Jawab</h3>
+                <p>Muhammad Baichaki Maulana</p>
+                <a href="tel:089514459128" class="contact-phone">089514459128</a>
+            </div>
+            <div class="contact-card">
+                <div class="contact-icon">👤</div>
+                <h3>Ketua Pelaksana</h3>
+                <p>Ahmad Rijani</p>
+                <a href="tel:082150658810" class="contact-phone">082150658810</a>
+            </div>
+            <div class="contact-card">
+                <div class="contact-icon">👤</div>
+                <h3>Sekretaris</h3>
+                <p>Aida Muslimah</p>
+                <a href="tel:0895400459070" class="contact-phone">0895400459070</a>
+            </div>
+            <div class="contact-card">
+                <div class="contact-icon">👤</div>
+                <h3>Bendahara</h3>
+                <p>Wardatushofia</p>
+                <a href="tel:081349702553" class="contact-phone">081349702553</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- DOKUMENTASI -->
+<section id="dokumentasi" class="dokumentasi">
+    <div class="container">
+        <h2 class="section-title">Dokumentasi</h2>
+        <div class="dokumentasi-grid" id="dokumentasiGrid">
+            <!-- Content will be loaded from Firebase -->
+            <div class="empty-state">
+                <p>📸 Dokumentasi akan segera hadir</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- BERITA TERKAIT -->
+<section id="berita" class="berita">
+    <div class="container">
+        <h2 class="section-title">Berita Terkait</h2>
+        <div class="berita-grid" id="beritaGrid">
+            <!-- Content will be loaded from Firebase -->
+            <div class="empty-state">
+                <p>📰 Belum ada berita terkait</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+    <div class="container">
+        <p>&copy; 2026 KIBLAT MPI - Manajemen Pendidikan Islam 2023</p>
+        <p>UIN Antasari Banjarmasin</p>
+    </div>
+</footer>
+
+<!-- MODAL LOGIN DEVELOPER -->
+<div id="devLoginModal" class="modal">
+    <div class="modal-content modal-small">
+        <span class="close">&times;</span>
+        <h2>🔐 Login Developer</h2>
+        <form id="devLoginForm">
+            <div class="form-group">
+                <label for="devPassword">Password Developer</label>
+                <input type="password" id="devPassword" placeholder="Masukkan password" required>
+            </div>
+            <button type="submit" class="login-btn">Login</button>
+        </form>
+        <div id="devError" class="error-message"></div>
+    </div>
+</div>
+
+<!-- MODAL EDIT CONTENT -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>⚙️ Edit Mode - Developer</h2>
+        
+        <div class="edit-tabs">
+            <button class="edit-tab-btn active" data-tab="hero">Hero Section</button>
+            <button class="edit-tab-btn" data-tab="about">About</button>
+            <button class="edit-tab-btn" data-tab="dokumentasi">Dokumentasi</button>
+            <button class="edit-tab-btn" data-tab="berita">Berita</button>
+        </div>
+
+        <!-- EDIT HERO -->
+        <div id="editHero" class="edit-section active">
+            <h3>Edit Hero Section</h3>
+            <div class="form-group">
+                <label>Judul Utama</label>
+                <input type="text" id="editHeroTitle" placeholder="KIBLAT MPI 2026">
+            </div>
+            <div class="form-group">
+                <label>Subtitle</label>
+                <input type="text" id="editHeroSubtitle" placeholder="Kompetisi Ilmiah...">
+            </div>
+            <div class="form-group">
+                <label>Deskripsi</label>
+                <textarea id="editHeroDesc" rows="3"></textarea>
+            </div>
+            <button class="btn-save" onclick="saveHero()">💾 Simpan Hero</button>
+        </div>
+
+        <!-- EDIT ABOUT -->
+        <div id="editAbout" class="edit-section">
+            <h3>Edit Tentang KIBLAT</h3>
+            <div class="form-group">
+                <label>Konten (Pisahkan paragraf dengan enter 2x)</label>
+                <textarea id="editAboutContent" rows="10"></textarea>
+            </div>
+            <button class="btn-save" onclick="saveAbout()">💾 Simpan About</button>
+        </div>
+
+        <!-- EDIT DOKUMENTASI -->
+        <div id="editDokumentasi" class="edit-section">
+            <h3>Tambah Dokumentasi</h3>
+            <div class="form-group">
+                <label>Judul Foto/Video</label>
+                <input type="text" id="dokTitle" placeholder="Rapat Perdana">
+            </div>
+            <div class="form-group">
+                <label>URL Gambar/Video</label>
+                <input type="url" id="dokUrl" placeholder="https://...">
+                <small>Upload foto ke Google Drive/Imgur lalu paste linknya</small>
+            </div>
+            <div class="form-group">
+                <label>Tanggal</label>
+                <input type="date" id="dokDate">
+            </div>
+            <button class="btn-save" onclick="addDokumentasi()">➕ Tambah Dokumentasi</button>
+            
+            <hr style="margin: 30px 0;">
+            <h4>List Dokumentasi</h4>
+            <div id="dokList"></div>
+        </div>
+
+        <!-- EDIT BERITA -->
+        <div id="editBerita" class="edit-section">
+            <h3>Tambah Berita Terkait</h3>
+            <div class="form-group">
+                <label>Judul Berita</label>
+                <input type="text" id="beritaTitle" placeholder="KIBLAT MPI 2026 Resmi Dibuka">
+            </div>
+            <div class="form-group">
+                <label>Sumber Media</label>
+                <input type="text" id="beritaSource" placeholder="Kompas.com">
+            </div>
+            <div class="form-group">
+                <label>Link Berita</label>
+                <input type="url" id="beritaUrl" placeholder="https://...">
+            </div>
+            <div class="form-group">
+                <label>Tanggal Terbit</label>
+                <input type="date" id="beritaDate">
+            </div>
+            <button class="btn-save" onclick="addBerita()">➕ Tambah Berita</button>
+            
+            <hr style="margin: 30px 0;">
+            <h4>List Berita</h4>
+            <div id="beritaList"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center;">
+    <div style="background: white; padding: 30px; border-radius: 10px; text-align: center;">
+        <div style="font-size: 40px; margin-bottom: 15px;">⏳</div>
+        <div style="font-size: 18px; color: #667eea; font-weight: 600;">Loading...</div>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+
+<script src="js/firebase-config.js"></script>
+<script src="js/landing.js"></script>
+
+</body>
+</html>
