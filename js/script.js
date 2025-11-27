@@ -7,8 +7,6 @@ let jadwalAdmin = [];
 let absensiData = {};
 let filesData = [];
 
-
-
 // Divisi list dengan emoji dan nama lengkap
 const divisiInfo = {
     'acara': { emoji: '📅', nama: 'Acara' },
@@ -378,7 +376,7 @@ function loginSuccess() {
     
     switchDivisi(currentDivisi);
     
-    // Init admin features
+    // PENTING: Init admin features di akhir
     initAdminMode();
 }
 
@@ -792,6 +790,10 @@ function showAdminFeatures() {
         return;
     }
     
+    if (currentUserRole !== 'admin' && currentUserRole !== 'developer') {
+        return; 
+    }
+    
     const sidebarMenu = document.querySelector('.sidebar-menu');
     const adminMenu = document.createElement('li');
     adminMenu.innerHTML = '<a href="#" id="adminPanel">⚙️ Panel Admin</a>';
@@ -802,6 +804,7 @@ function showAdminFeatures() {
         openAdminPanel();
     });
 }
+
 
 // ===== ADMIN ABSENSI SESSION MANAGEMENT =====
 async function handleCreateAbsensiSession(e) {
