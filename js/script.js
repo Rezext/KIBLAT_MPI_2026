@@ -23,6 +23,28 @@ Object.keys(divisiInfo).forEach(divisi => {
     todoData[divisi] = [];
 });
 
+// ===== UTILITY FUNCTIONS =====
+function formatDate(dateStr) {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('id-ID', { 
+        weekday: 'short', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+    });
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 // ===== FIREBASE HELPERS =====
 function showLoading() {
     document.getElementById('loadingOverlay').style.display = 'flex';
@@ -278,6 +300,9 @@ function loginSuccess() {
     document.getElementById('passwordDeveloper').value = '';
     
     switchDivisi(currentDivisi);
+    
+    // Init admin features
+    initAdminMode();
 }
 
 function showError(message) {
@@ -678,37 +703,6 @@ function initHamburgerMenu() {
     });
 }
 
-// ===== UTILITY FUNCTIONS =====
-function formatDate(dateStr) {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('id-ID', { 
-        weekday: 'short', 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-    });
-}
-
-function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-// ===== PWA SERVICE WORKER REGISTRATION =====
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/service-worker.js')
-            .then(registration => {
-                console.log('✅ Service Worker registered:', registration);
-            })
-            .catch(error => {
-                console.log('❌ Service Worker registration failed:', error);
-            });
-    });
-}
-
 // ===== ADMIN MODE =====
 function initAdminMode() {
     if (currentUserRole === 'admin' || currentUserRole === 'developer') {
@@ -717,7 +711,6 @@ function initAdminMode() {
 }
 
 function showAdminFeatures() {
-    // Tambah menu admin di sidebar
     const sidebarMenu = document.querySelector('.sidebar-menu');
     const adminMenu = document.createElement('li');
     adminMenu.innerHTML = '<a href="#" id="adminPanel">⚙️ Panel Admin</a>';
@@ -747,7 +740,6 @@ function openAdminPanel() {
                 <button class="admin-tab-btn" data-tab="manageAbsensi">📋 Kelola Absensi</button>
             </div>
 
-            <!-- DASHBOARD TAB -->
             <div id="adminDashboard" class="admin-section active">
                 <h3>Dashboard Statistik</h3>
                 <div class="stats-grid">
@@ -777,7 +769,6 @@ function openAdminPanel() {
                 <div id="divisiStats"></div>
             </div>
 
-            <!-- ALL TODOS TAB -->
             <div id="adminAllTodos" class="admin-section">
                 <h3>Semua To-Do List</h3>
                 <div class="filter-section">
@@ -794,7 +785,6 @@ function openAdminPanel() {
                 <div id="adminTodosList"></div>
             </div>
 
-            <!-- JADWAL TAB -->
             <div id="adminManageJadwal" class="admin-section">
                 <h3>Kelola Jadwal Admin</h3>
                 <form id="adminJadwalForm" class="admin-form">
@@ -830,7 +820,6 @@ function openAdminPanel() {
                 <div id="adminJadwalList"></div>
             </div>
 
-            <!-- ABSENSI TAB -->
             <div id="adminManageAbsensi" class="admin-section">
                 <h3>Kelola Data Absensi</h3>
                 <form id="adminAbsensiForm" class="admin-form">
@@ -881,7 +870,6 @@ function closeAdminPanel() {
     }
 }
 
-// ===== ADMIN TABS =====
 function initAdminTabs() {
     document.querySelectorAll('.admin-tab-btn').forEach(btn => {
         btn.addEventListener('click', function() {
@@ -899,7 +887,6 @@ function initAdminTabs() {
                 targetSection.classList.add('active');
             }
             
-            // Load data per tab
             if (tab === 'dashboard') {
                 loadAdminDashboard();
             } else if (tab === 'allTodos') {
@@ -910,7 +897,6 @@ function initAdminTabs() {
         });
     });
     
-    // Form handlers
     const jadwalForm = document.getElementById('adminJadwalForm');
     if (jadwalForm) {
         jadwalForm.addEventListener('submit', handleAdminJadwalSubmit);
@@ -922,7 +908,6 @@ function initAdminTabs() {
     }
 }
 
-// ===== ADMIN DASHBOARD =====
 async function loadAdminDashboard() {
     let totalTodos = 0;
     let urgentTodos = 0;
@@ -947,7 +932,6 @@ async function loadAdminDashboard() {
     document.getElementById('urgentTodos').textContent = urgentTodos;
     document.getElementById('completedTodos').textContent = completedTodos;
     
-    // Divisi stats
     const divisiStatsEl = document.getElementById('divisiStats');
     divisiStatsEl.innerHTML = Object.keys(divisiInfo).map(divisi => {
         const info = divisiInfo[divisi];
@@ -971,7 +955,6 @@ async function loadAdminDashboard() {
     }).join('');
 }
 
-// ===== ADMIN ALL TODOS =====
 function populateFilterDivisi() {
     const select = document.getElementById('filterDivisi');
     if (select) {
@@ -1012,7 +995,6 @@ function loadAdminAllTodos() {
         allTodos = allTodos.filter(t => t.completed);
     }
     
-    // Sort by date
     allTodos.sort((a, b) => new Date(a.tanggal) - new Date(b.tanggal));
     
     const listEl = document.getElementById('adminTodosList');
@@ -1066,7 +1048,6 @@ async function adminDeleteTodo(id, divisi) {
     }
 }
 
-// ===== ADMIN JADWAL =====
 async function handleAdminJadwalSubmit(e) {
     e.preventDefault();
     
@@ -1135,14 +1116,12 @@ async function deleteAdminJadwal(id) {
     }
 }
 
-// ===== ADMIN ABSENSI =====
 async function handleAdminAbsensiSubmit(e) {
     e.preventDefault();
     
     const acara = document.getElementById('absensiAcara').value;
     const tanggal = document.getElementById('absensiTanggal').value;
     
-    // Parse NIM lists
     const hadirNIMs = document.getElementById('absensiHadir').value
         .split(',').map(nim => nim.trim()).filter(nim => nim);
     
@@ -1155,7 +1134,6 @@ async function handleAdminAbsensiSubmit(e) {
     const alphaNIMs = document.getElementById('absensiAlpha').value
         .split(',').map(nim => nim.trim()).filter(nim => nim);
     
-    // Build data with names
     const hadir = hadirNIMs.map(nim => ({
         nim,
         nama: MEMBERS_DATA.members[nim]?.nama || 'Unknown',
@@ -1196,12 +1174,18 @@ async function handleAdminAbsensiSubmit(e) {
     }
 }
 
-// Update loginSuccess untuk init admin mode
-const originalLoginSuccess = loginSuccess;
-loginSuccess = function() {
-    originalLoginSuccess();
-    initAdminMode();
-};
+// ===== PWA SERVICE WORKER REGISTRATION =====
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+            .then(registration => {
+                console.log('✅ Service Worker registered:', registration);
+            })
+            .catch(error => {
+                console.log('❌ Service Worker registration failed:', error);
+            });
+    });
+}
 
 // Initialize
 document.getElementById('inputTab').style.display = 'block';
