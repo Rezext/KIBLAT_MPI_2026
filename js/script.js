@@ -26,6 +26,7 @@ Object.keys(divisiInfo).forEach(divisi => {
 // ===== UTILITY FUNCTIONS =====
 function formatDate(dateStr) {
     const date = new Date(dateStr);
+    if (Number.isNaN(date.getTime())) return dateStr;
     return date.toLocaleDateString('id-ID', { 
         weekday: 'short', 
         year: 'numeric', 
@@ -47,11 +48,13 @@ function capitalize(str) {
 
 // ===== FIREBASE HELPERS =====
 function showLoading() {
-    document.getElementById('loadingOverlay').style.display = 'flex';
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) overlay.style.display = 'flex';
 }
 
 function hideLoading() {
-    document.getElementById('loadingOverlay').style.display = 'none';
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) overlay.style.display = 'none';
 }
 
 // ===== INITIALIZATION =====
@@ -95,7 +98,6 @@ async function loadTodosFromFirebase() {
         snapshot.forEach(doc => {
             const data = doc.data();
             const divisi = data.divisi;
-            
             if (todoData[divisi]) {
                 todoData[divisi].push({
                     id: doc.id,
@@ -114,7 +116,7 @@ async function saveTodoToFirebase(divisi, todo) {
     showLoading();
     try {
         const docData = {
-            divisi: divisi,
+            divisi,
             nama: todo.nama,
             prioritas: todo.prioritas,
             tanggal: todo.tanggal,
@@ -126,9 +128,7 @@ async function saveTodoToFirebase(divisi, todo) {
         };
         
         const docRef = await todoCollection.add(docData);
-        
         todo.id = docRef.id;
-        
         console.log('✅ Todo saved to Firebase:', docRef.id);
         return docRef.id;
     } catch (error) {
@@ -146,7 +146,7 @@ async function updateTodoInFirebase(todoId, updates) {
         console.log('✅ Todo updated in Firebase:', todoId);
     } catch (error) {
         console.error('❌ Error updating todo:', error);
-        alert('❌ Gagal update data. Cek koneksi internet Anda.');
+        alert('❌ Gagal update data.');
     } finally {
         hideLoading();
     }
@@ -159,7 +159,7 @@ async function deleteTodoFromFirebase(todoId) {
         console.log('✅ Todo deleted from Firebase:', todoId);
     } catch (error) {
         console.error('❌ Error deleting todo:', error);
-        alert('❌ Gagal hapus data. Cek koneksi internet Anda.');
+        alert('❌ Gagal hapus data.');
     } finally {
         hideLoading();
     }
@@ -169,32 +169,23 @@ async function deleteTodoFromFirebase(todoId) {
 async function loadJadwalFromFirebase() {
     try {
         const snapshot = await jadwalCollection.orderBy('tanggal', 'asc').get();
-        
         jadwalAdmin = [];
         snapshot.forEach(doc => {
-            jadwalAdmin.push({
-                id: doc.id,
-                ...doc.data()
-            });
+            jadwalAdmin.push({ id: doc.id, ...doc.data() });
         });
-        
         console.log('✅ Jadwal loaded from Firebase');
     } catch (error) {
         console.error('❌ Error loading jadwal:', error);
     }
 }
 
-// ===== FIREBASE: ABSENSI =====
+// ===== FIREBASE: ABSENSI (lama, untuk menu Absensi anggota) =====
 async function loadAbsensiFromFirebase() {
     try {
         const snapshot = await absensiCollection.orderBy('tanggal', 'desc').limit(1).get();
-        
         if (!snapshot.empty) {
             const doc = snapshot.docs[0];
-            absensiData = {
-                id: doc.id,
-                ...doc.data()
-            };
+            absensiData = { id: doc.id, ...doc.data() };
         } else {
             absensiData = {
                 tanggal: '2025-11-24',
@@ -204,8 +195,7 @@ async function loadAbsensiFromFirebase() {
                 alpha: []
             };
         }
-        
-        console.log('✅ Absensi loaded from Firebase');
+        console.log('✅ Absensi (ringkasan) loaded from Firebase');
     } catch (error) {
         console.error('❌ Error loading absensi:', error);
     }
@@ -219,20 +209,17 @@ function initLoginTabs() {
     tabButtons.forEach(btn => {
         btn.addEventListener('click', function() {
             const loginType = this.dataset.login;
-            
             tabButtons.forEach(b => b.classList.remove('active'));
             this.classList.add('active');
-            
             loginForms.forEach(form => form.classList.remove('active'));
             
             if (loginType === 'anggota') {
                 document.getElementById('loginFormAnggota').classList.add('active');
             } else if (loginType === 'admin') {
                 document.getElementById('loginFormAdmin').classList.add('active');
-            } else if (loginType === 'developer') {
+            } else {
                 document.getElementById('loginFormDeveloper').classList.add('active');
             }
-            
             document.getElementById('errorMessage').style.display = 'none';
         });
     });
@@ -243,7 +230,6 @@ function initLoginForms() {
     document.getElementById('loginFormAnggota').addEventListener('submit', function(e) {
         e.preventDefault();
         const nim = document.getElementById('nimAnggota').value.trim();
-        
         if (MEMBERS_DATA.members[nim]) {
             currentUser = nim;
             currentUserRole = 'anggota';
@@ -257,7 +243,6 @@ function initLoginForms() {
         e.preventDefault();
         const nim = document.getElementById('nimAdmin').value.trim();
         const password = document.getElementById('passwordAdmin').value;
-        
         if (MEMBERS_DATA.adminNIMs.includes(nim) && password === MEMBERS_DATA.adminPassword) {
             currentUser = nim;
             currentUserRole = 'admin';
@@ -270,7 +255,6 @@ function initLoginForms() {
     document.getElementById('loginFormDeveloper').addEventListener('submit', function(e) {
         e.preventDefault();
         const password = document.getElementById('passwordDeveloper').value;
-        
         if (password === MEMBERS_DATA.developerPassword) {
             currentUser = MEMBERS_DATA.developerNIM;
             currentUserRole = 'developer';
@@ -283,12 +267,10 @@ function initLoginForms() {
 
 function loginSuccess() {
     const userData = MEMBERS_DATA.members[currentUser];
-    
     document.getElementById('userName').textContent = userData.nama;
     document.getElementById('userNim').textContent = `NIM: ${currentUser}`;
     
     renderDivisiMenu(userData.divisi);
-    
     currentDivisi = userData.divisi[0];
     
     document.getElementById('loginPage').style.display = 'none';
@@ -300,8 +282,6 @@ function loginSuccess() {
     document.getElementById('passwordDeveloper').value = '';
     
     switchDivisi(currentDivisi);
-    
-    // Init admin features
     initAdminMode();
 }
 
@@ -309,16 +289,13 @@ function showError(message) {
     const errorMsg = document.getElementById('errorMessage');
     errorMsg.textContent = message;
     errorMsg.style.display = 'block';
-    setTimeout(() => {
-        errorMsg.style.display = 'none';
-    }, 3000);
+    setTimeout(() => { errorMsg.style.display = 'none'; }, 3000);
 }
 
 // ===== RENDER DIVISI MENU =====
 function renderDivisiMenu(divisiList) {
     const divisiContainer = document.getElementById('divisiList');
     divisiContainer.innerHTML = '';
-    
     divisiList.forEach((divisi, index) => {
         const info = divisiInfo[divisi];
         const link = document.createElement('a');
@@ -326,12 +303,10 @@ function renderDivisiMenu(divisiList) {
         link.className = 'divisi-link' + (index === 0 ? ' active' : '');
         link.dataset.divisi = divisi;
         link.textContent = `${info.emoji} ${info.nama}`;
-        
         link.addEventListener('click', function(e) {
             e.preventDefault();
             switchDivisi(divisi);
         });
-        
         divisiContainer.appendChild(link);
     });
 }
@@ -339,17 +314,13 @@ function renderDivisiMenu(divisiList) {
 // ===== DIVISI NAVIGATION =====
 function switchDivisi(divisi) {
     currentDivisi = divisi;
-    
-    document.querySelectorAll('.divisi-link').forEach(link => {
-        link.classList.remove('active');
-    });
-    document.querySelector(`[data-divisi="${divisi}"]`).classList.add('active');
+    document.querySelectorAll('.divisi-link').forEach(link => link.classList.remove('active'));
+    const activeLink = document.querySelector(`[data-divisi="${divisi}"]`);
+    if (activeLink) activeLink.classList.add('active');
     
     const info = divisiInfo[divisi];
     document.getElementById('divisiTitle').textContent = `${info.emoji} ${info.nama}`;
-    
     document.querySelector('[data-tab="input"]').click();
-    
     displayResults();
 }
 
@@ -358,10 +329,8 @@ function initTabs() {
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const tab = this.dataset.tab;
-            
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             this.classList.add('active');
-            
             if (tab === 'input') {
                 document.getElementById('inputTab').style.display = 'block';
                 document.getElementById('hasilTab').classList.remove('active');
@@ -390,25 +359,19 @@ function initTodoForm() {
         };
         
         const todoId = await saveTodoToFirebase(currentDivisi, todo);
-        
         if (todoId) {
             todo.id = todoId;
             todoData[currentDivisi].push(todo);
-            
             this.reset();
             alert('✅ To-Do berhasil ditambahkan!');
-            
-            setTimeout(() => {
-                document.querySelector('[data-tab="hasil"]').click();
-            }, 500);
+            setTimeout(() => { document.querySelector('[data-tab="hasil"]').click(); }, 500);
         }
     });
 }
 
 // ===== DISPLAY RESULTS =====
 function displayResults() {
-    const todos = todoData[currentDivisi];
-    
+    const todos = todoData[currentDivisi] || [];
     const urgent = todos.filter(t => t.prioritas === 'urgent' && !t.completed);
     const medium = todos.filter(t => t.prioritas === 'medium' && !t.completed);
     const low = todos.filter(t => t.prioritas === 'low' && !t.completed);
@@ -421,26 +384,23 @@ function displayResults() {
 }
 
 function renderTodos(todos, priority) {
-    if (todos.length === 0) {
-        return '<div class="empty-state"><p>Tidak ada item</p></div>';
-    }
-    
+    if (!todos.length) return '<div class="empty-state"><p>Tidak ada item</p></div>';
     return todos.map(todo => `
         <div class="todo-item ${priority}">
             <div class="todo-content">
                 <div class="todo-title">${escapeHtml(todo.nama)}</div>
                 <div class="todo-deadline">📅 ${formatDate(todo.tanggal)}</div>
                 <div class="todo-time">⏰ ${todo.waktu} WITA</div>
-                ${todo.deskripsi ? `<div style="margin-top: 8px; font-size: 13px; color: #555;">📝 ${escapeHtml(todo.deskripsi)}</div>` : ''}
+                ${todo.deskripsi ? `<div style="margin-top:8px;font-size:13px;color:#555;">📝 ${escapeHtml(todo.deskripsi)}</div>` : ''}
             </div>
             <div class="todo-actions">
                 ${!todo.completed ? `
-                    <button class="btn-check" onclick="toggleComplete('${todo.id}', '${currentDivisi}', true)">✓ Selesai</button>
-                    <button class="btn-edit" onclick="editTodo('${todo.id}', '${currentDivisi}')">✏️ Edit</button>
+                    <button class="btn-check" onclick="toggleComplete('${todo.id}','${currentDivisi}',true)">✓ Selesai</button>
+                    <button class="btn-edit" onclick="editTodo('${todo.id}','${currentDivisi}')">✏️ Edit</button>
                 ` : `
-                    <button class="btn-uncheck" onclick="toggleComplete('${todo.id}', '${currentDivisi}', false)">↻ Batal</button>
+                    <button class="btn-uncheck" onclick="toggleComplete('${todo.id}','${currentDivisi}',false)">↻ Batal</button>
                 `}
-                <button class="btn-delete" onclick="deleteTodo('${todo.id}', '${currentDivisi}')">🗑️ Hapus</button>
+                <button class="btn-delete" onclick="deleteTodo('${todo.id}','${currentDivisi}')">🗑️ Hapus</button>
             </div>
         </div>
     `).join('');
@@ -448,35 +408,30 @@ function renderTodos(todos, priority) {
 
 // ===== TODO ACTIONS =====
 async function toggleComplete(id, divisi, status) {
-    const todo = todoData[divisi].find(t => t.id === id);
-    if (todo) {
-        todo.completed = status;
-        await updateTodoInFirebase(id, { completed: status });
-        displayResults();
-    }
+    const todo = (todoData[divisi] || []).find(t => t.id === id);
+    if (!todo) return;
+    todo.completed = status;
+    await updateTodoInFirebase(id, { completed: status });
+    displayResults();
 }
 
 async function deleteTodo(id, divisi) {
-    if (confirm('Yakin ingin menghapus?')) {
-        await deleteTodoFromFirebase(id);
-        todoData[divisi] = todoData[divisi].filter(todo => todo.id !== id);
-        displayResults();
-    }
+    if (!confirm('Yakin ingin menghapus?')) return;
+    await deleteTodoFromFirebase(id);
+    todoData[divisi] = (todoData[divisi] || []).filter(t => t.id !== id);
+    displayResults();
 }
 
 function editTodo(id, divisi) {
-    const todo = todoData[divisi].find(t => t.id === id);
+    const todo = (todoData[divisi] || []).find(t => t.id === id);
     if (!todo) return;
-    
     document.getElementById('namaKegiatan').value = todo.nama;
     document.querySelector(`input[name="prioritas"][value="${todo.prioritas}"]`).checked = true;
     document.getElementById('tanggal').value = todo.tanggal;
     document.getElementById('waktu').value = todo.waktu;
     document.getElementById('deskripsi').value = todo.deskripsi;
-    
     deleteTodoFromFirebase(id);
     todoData[divisi] = todoData[divisi].filter(t => t.id !== id);
-    
     document.querySelector('[data-tab="input"]').click();
     document.getElementById('namaKegiatan').focus();
 }
@@ -484,38 +439,33 @@ function editTodo(id, divisi) {
 // ===== LOGOUT =====
 function initLogout() {
     document.getElementById('logoutBtn').addEventListener('click', function() {
-        if (confirm('Yakin ingin logout?')) {
-            currentUser = null;
-            currentUserRole = null;
-            currentDivisi = null;
-            document.getElementById('mainContainer').style.display = 'none';
-            document.getElementById('loginPage').style.display = 'flex';
-            document.getElementById('todoForm').reset();
-            
-            document.querySelectorAll('.login-tab-btn')[0].click();
-        }
+        if (!confirm('Yakin ingin logout?')) return;
+        currentUser = null;
+        currentUserRole = null;
+        currentDivisi = null;
+        document.getElementById('mainContainer').style.display = 'none';
+        document.getElementById('loginPage').style.display = 'flex';
+        document.getElementById('todoForm').reset();
+        document.querySelectorAll('.login-tab-btn')[0].click();
     });
 }
 
 // ===== SIDEBAR LINKS =====
 function initSidebarLinks() {
-    document.getElementById('downloadFile').addEventListener('click', function(e) {
+    document.getElementById('downloadFile').addEventListener('click', e => {
         e.preventDefault();
         alert('🚧 Fitur download file akan segera hadir!');
     });
-    
-    document.getElementById('contactPerson').addEventListener('click', function(e) {
+    document.getElementById('contactPerson').addEventListener('click', e => {
         e.preventDefault();
         openModal('cpModal');
     });
-    
-    document.getElementById('jadwalAdmin').addEventListener('click', function(e) {
+    document.getElementById('jadwalAdmin').addEventListener('click', e => {
         e.preventDefault();
         renderJadwal();
         openModal('jadwalModal');
     });
-    
-    document.getElementById('absensiLink').addEventListener('click', function(e) {
+    document.getElementById('absensiLink').addEventListener('click', e => {
         e.preventDefault();
         renderAbsensi();
         openModal('absensiModal');
@@ -529,13 +479,9 @@ function initModals() {
             this.closest('.modal').style.display = 'none';
         });
     });
-    
-    window.addEventListener('click', function(e) {
-        if (e.target.classList.contains('modal')) {
-            e.target.style.display = 'none';
-        }
+    window.addEventListener('click', e => {
+        if (e.target.classList.contains('modal')) e.target.style.display = 'none';
     });
-    
     document.querySelectorAll('.cp-item').forEach(item => {
         item.addEventListener('click', function() {
             const phone = this.dataset.phone;
@@ -544,163 +490,87 @@ function initModals() {
     });
 }
 
-function openModal(modalId) {
-    document.getElementById(modalId).style.display = 'block';
+function openModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) modal.style.display = 'block';
 }
 
 // ===== RENDER JADWAL =====
 function renderJadwal() {
     const jadwalList = document.getElementById('jadwalList');
-    
-    if (jadwalAdmin.length === 0) {
+    if (!jadwalAdmin.length) {
         jadwalList.innerHTML = '<div class="empty-state"><p>Belum ada jadwal</p></div>';
         return;
     }
-    
-    jadwalList.innerHTML = jadwalAdmin.map(jadwal => `
+    jadwalList.innerHTML = jadwalAdmin.map(j => `
         <div class="jadwal-item">
-            <div class="jadwal-title">${escapeHtml(jadwal.judul)}</div>
-            <div class="jadwal-date">📅 ${formatDate(jadwal.tanggal)} | ⏰ ${jadwal.waktu} WITA</div>
-            <div class="jadwal-date">📍 ${escapeHtml(jadwal.tempat)}</div>
-            ${jadwal.deskripsi ? `<div style="margin-top: 8px; font-size: 13px; color: #555;">${escapeHtml(jadwal.deskripsi)}</div>` : ''}
+            <div class="jadwal-title">${escapeHtml(j.judul)}</div>
+            <div class="jadwal-date">📅 ${formatDate(j.tanggal)} | ⏰ ${j.waktu} WITA</div>
+            <div class="jadwal-date">📍 ${escapeHtml(j.tempat)}</div>
+            ${j.deskripsi ? `<div style="margin-top:8px;font-size:13px;color:#555;">${escapeHtml(j.deskripsi)}</div>` : ''}
         </div>
     `).join('');
 }
 
-// ===== RENDER ABSENSI =====
+// ===== RENDER ABSENSI (ringkas) =====
 function renderAbsensi() {
     const absensiContent = document.getElementById('absensiContent');
-    
     const hadirCount = absensiData.hadir?.length || 0;
     const izinCount = absensiData.izin?.length || 0;
     const alphaCount = absensiData.alpha?.length || 0;
-    
     absensiContent.innerHTML = `
-        <h3 style="margin-bottom: 15px;">Acara: ${escapeHtml(absensiData.acara)}</h3>
-        <p style="margin-bottom: 20px; color: #7f8c8d;">Tanggal: ${formatDate(absensiData.tanggal)}</p>
-        
-        <h4 style="margin-top: 20px; margin-bottom: 10px; color: #27ae60;">✅ Hadir (${hadirCount})</h4>
+        <h3 style="margin-bottom:15px;">Acara: ${escapeHtml(absensiData.acara)}</h3>
+        <p style="margin-bottom:20px;color:#7f8c8d;">Tanggal: ${formatDate(absensiData.tanggal)}</p>
+        <h4 style="margin-top:20px;margin-bottom:10px;color:#27ae60;">✅ Hadir (${hadirCount})</h4>
         <table class="absensi-table">
-            <thead>
-                <tr>
-                    <th>No</th>
-                    <th>NIM</th>
-                    <th>Nama</th>
-                    <th>Waktu</th>
-                </tr>
-            </thead>
+            <thead><tr><th>No</th><th>NIM</th><th>Nama</th><th>Waktu</th></tr></thead>
             <tbody>
-                ${(absensiData.hadir || []).map((m, i) => `
-                    <tr>
-                        <td>${i + 1}</td>
-                        <td>${m.nim}</td>
-                        <td>${escapeHtml(m.nama)}</td>
-                        <td>${m.waktu} WITA</td>
-                    </tr>
+                ${(absensiData.hadir || []).map((m,i)=>`
+                    <tr><td>${i+1}</td><td>${m.nim}</td><td>${escapeHtml(m.nama)}</td><td>${m.waktu} WITA</td></tr>
                 `).join('')}
             </tbody>
         </table>
-        
-        <h4 style="margin-top: 20px; margin-bottom: 10px; color: #f39c12;">📝 Izin (${izinCount})</h4>
+        <h4 style="margin-top:20px;margin-bottom:10px;color:#f39c12;">📝 Izin (${izinCount})</h4>
         <table class="absensi-table">
-            <thead>
-                <tr>
-                    <th>No</th>
-                    <th>NIM</th>
-                    <th>Nama</th>
-                    <th>Keterangan</th>
-                </tr>
-            </thead>
+            <thead><tr><th>No</th><th>NIM</th><th>Nama</th><th>Keterangan</th></tr></thead>
             <tbody>
-                ${(absensiData.izin || []).map((m, i) => `
-                    <tr>
-                        <td>${i + 1}</td>
-                        <td>${m.nim}</td>
-                        <td>${escapeHtml(m.nama)}</td>
-                        <td>${escapeHtml(m.keterangan)}</td>
-                    </tr>
+                ${(absensiData.izin || []).map((m,i)=>`
+                    <tr><td>${i+1}</td><td>${m.nim}</td><td>${escapeHtml(m.nama)}</td><td>${escapeHtml(m.keterangan)}</td></tr>
                 `).join('')}
             </tbody>
         </table>
-        
-        <h4 style="margin-top: 20px; margin-bottom: 10px; color: #e74c3c;">❌ Alpha (${alphaCount})</h4>
+        <h4 style="margin-top:20px;margin-bottom:10px;color:#e74c3c;">❌ Alpha (${alphaCount})</h4>
         <table class="absensi-table">
-            <thead>
-                <tr>
-                    <th>No</th>
-                    <th>NIM</th>
-                    <th>Nama</th>
-                </tr>
-            </thead>
+            <thead><tr><th>No</th><th>NIM</th><th>Nama</th></tr></thead>
             <tbody>
-                ${(absensiData.alpha || []).map((m, i) => `
-                    <tr>
-                        <td>${i + 1}</td>
-                        <td>${m.nim}</td>
-                        <td>${escapeHtml(m.nama)}</td>
-                    </tr>
+                ${(absensiData.alpha || []).map((m,i)=>`
+                    <tr><td>${i+1}</td><td>${m.nim}</td><td>${escapeHtml(m.nama)}</td></tr>
                 `).join('')}
             </tbody>
         </table>
     `;
 }
 
-// ===== HAMBURGER MENU TOGGLE =====
+// ===== HAMBURGER MENU =====
 function initHamburgerMenu() {
     const hamburger = document.getElementById('hamburgerBtn');
     const sidebar = document.querySelector('.sidebar');
     const overlay = document.getElementById('sidebarOverlay');
-    const divisiLinks = document.querySelectorAll('.divisi-link');
-    const sidebarLinks = document.querySelectorAll('.sidebar-menu a');
-
-    function toggleSidebar() {
-        hamburger.classList.toggle('active');
-        sidebar.classList.toggle('active');
-        overlay.classList.toggle('active');
-        
-        if (sidebar.classList.contains('active')) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = '';
-        }
-    }
-
-    function closeSidebar() {
+    const closeSidebar = () => {
         hamburger.classList.remove('active');
         sidebar.classList.remove('active');
         overlay.classList.remove('active');
         document.body.style.overflow = '';
-    }
-
-    if (hamburger) {
-        hamburger.addEventListener('click', toggleSidebar);
-    }
-
-    if (overlay) {
-        overlay.addEventListener('click', closeSidebar);
-    }
-
-    divisiLinks.forEach(link => {
-        link.addEventListener('click', function() {
-            if (window.innerWidth <= 768) {
-                setTimeout(closeSidebar, 300);
-            }
-        });
-    });
-
-    sidebarLinks.forEach(link => {
-        link.addEventListener('click', function() {
-            if (window.innerWidth <= 768) {
-                setTimeout(closeSidebar, 300);
-            }
-        });
-    });
-
-    window.addEventListener('resize', function() {
-        if (window.innerWidth > 768) {
-            closeSidebar();
-        }
-    });
+    };
+    const toggleSidebar = () => {
+        hamburger.classList.toggle('active');
+        sidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+        document.body.style.overflow = sidebar.classList.contains('active') ? 'hidden' : '';
+    };
+    if (hamburger) hamburger.addEventListener('click', toggleSidebar);
+    if (overlay) overlay.addEventListener('click', closeSidebar);
+    window.addEventListener('resize', () => { if (window.innerWidth > 768) closeSidebar(); });
 }
 
 // ===== ADMIN MODE =====
@@ -711,16 +581,12 @@ function initAdminMode() {
 }
 
 function showAdminFeatures() {
-    if (document.getElementById('adminPanel')) {
-        return;
-    }
-    
+    if (document.getElementById('adminPanel')) return;
     const sidebarMenu = document.querySelector('.sidebar-menu');
-    const adminMenu = document.createElement('li');
-    adminMenu.innerHTML = '<a href="#" id="adminPanel">⚙️ Panel Admin</a>';
-    sidebarMenu.appendChild(adminMenu);
-    
-    document.getElementById('adminPanel').addEventListener('click', function(e) {
+    const li = document.createElement('li');
+    li.innerHTML = '<a href="#" id="adminPanel">⚙️ Panel Admin</a>';
+    sidebarMenu.appendChild(li);
+    document.getElementById('adminPanel').addEventListener('click', e => {
         e.preventDefault();
         openAdminPanel();
     });
@@ -729,225 +595,163 @@ function showAdminFeatures() {
 // ===== ADMIN ABSENSI SESSION MANAGEMENT =====
 async function initAbsensiSessionHandlers() {
     const createForm = document.getElementById('createAbsensiSessionForm');
-    if (createForm) {
+    if (createForm && !createForm.dataset.bound) {
         createForm.addEventListener('submit', handleCreateAbsensiSession);
+        createForm.dataset.bound = 'true';
     }
-    
-    loadAbsensiSessions();
+    await loadAbsensiSessions();
 }
 
 async function handleCreateAbsensiSession(e) {
     e.preventDefault();
-    
+    const acara = document.getElementById('sessionAcara').value.trim();
+    const tanggal = document.getElementById('sessionTanggal').value;
+    const startTime = document.getElementById('sessionStartTime').value;
+    const endTime = document.getElementById('sessionEndTime').value;
+    if (!acara || !tanggal || !startTime || !endTime) {
+        alert('Mohon isi semua field terlebih dahulu.');
+        return;
+    }
     const sessionData = {
-        acara: document.getElementById('sessionAcara').value,
-        tanggal: document.getElementById('sessionTanggal').value,
-        startTime: document.getElementById('sessionStartTime').value,
-        endTime: document.getElementById('sessionEndTime').value,
-        createdBy: currentUser,
+        acara,
+        tanggal,
+        startTime,
+        endTime,
+        createdBy: currentUser || 'unknown',
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         status: 'active'
     };
-    
     showLoading();
     try {
-        const docRef = await db.collection('absensi_sessions').add(sessionData);
-        
+        const docRef = await absensiSessionsCollection.add(sessionData);
+        console.log('✅ Absensi session created with ID:', docRef.id);
         const baseUrl = window.location.origin + window.location.pathname.replace('dashboard.html', '');
         const absensiLink = `${baseUrl}absensi.html?id=${docRef.id}`;
-        
         showAbsensiLinkModal(absensiLink, sessionData.acara);
-        
         e.target.reset();
-        loadAbsensiSessions();
-        
-    } catch (error) {
-        console.error('Error creating session:', error);
-        alert('❌ Gagal membuat sesi absensi.');
+        await loadAbsensiSessions();
+    } catch (err) {
+        console.error('❌ Error creating absensi session:', err);
+        alert('Gagal membuat sesi absensi.');
     } finally {
         hideLoading();
     }
 }
 
-function showAbsensiLinkModal(link, acara) {
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.style.display = 'block';
-    modal.innerHTML = `
-        <div class="modal-content" style="max-width: 600px;">
-            <span class="close" onclick="this.closest('.modal').remove()">&times;</span>
-            <h2 style="margin-bottom: 20px;">🔗 Link Absensi Berhasil Dibuat!</h2>
-            
-            <div style="background: #f0f8ff; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                <p style="margin-bottom: 10px; font-weight: 600;">Acara: ${acara}</p>
-                <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Bagikan link ini kepada seluruh panitia:</p>
-                <input type="text" value="${link}" readonly style="width: 100%; padding: 12px; border: 2px solid #667eea; border-radius: 5px; font-size: 14px; margin-bottom: 15px;" id="linkToCopy">
-                <button onclick="copyAbsensiLink()" style="width: 100%; padding: 12px; background: #667eea; color: white; border: none; border-radius: 5px; font-weight: 600; cursor: pointer;">
-                    📋 Copy Link
-                </button>
-            </div>
-            
-            <div style="background: #fff9e6; padding: 15px; border-radius: 8px; border-left: 4px solid #f39c12;">
-                <p style="font-size: 13px; color: #666; margin-bottom: 10px;"><strong>⚠️ Perhatian:</strong></p>
-                <ul style="font-size: 13px; color: #666; padding-left: 20px;">
-                    <li>Link hanya aktif pada waktu yang ditentukan</li>
-                    <li>Akses hanya dalam radius 500m dari UIN Antasari</li>
-                    <li>Setelah jam tutup, data otomatis diproses</li>
-                </ul>
-            </div>
-            
-            <button onclick="this.closest('.modal').remove()" style="width: 100%; margin-top: 20px; padding: 12px; background: #95a5a6; color: white; border: none; border-radius: 5px; font-weight: 600; cursor: pointer;">
-                Tutup
-            </button>
-        </div>
-    `;
-    document.body.appendChild(modal);
-}
-
-function copyAbsensiLink() {
-    const input = document.getElementById('linkToCopy');
-    input.select();
-    document.execCommand('copy');
-    alert('✅ Link berhasil di-copy!');
-}
-
 async function loadAbsensiSessions() {
+    const activeContainer = document.getElementById('activeSessionsList');
+    const pastContainer = document.getElementById('pastSessionsList');
+    if (!activeContainer || !pastContainer) return;
+    showLoading();
     try {
-        const snapshot = await db.collection('absensi_sessions')
+        const snapshot = await absensiSessionsCollection
             .orderBy('tanggal', 'desc')
             .orderBy('createdAt', 'desc')
             .get();
-        
         const today = new Date().toISOString().split('T')[0];
-        const activeSessions = [];
-        const pastSessions = [];
-        
+        const active = [], past = [];
         snapshot.forEach(doc => {
             const data = { id: doc.id, ...doc.data() };
-            if (data.tanggal >= today) {
-                activeSessions.push(data);
-            } else {
-                pastSessions.push(data);
-            }
+            const status = data.status || 'active';
+            if (status === 'active' && data.tanggal >= today) active.push(data);
+            else past.push(data);
         });
-        
-        renderActiveSessions(activeSessions);
-        renderPastSessions(pastSessions);
-        
-    } catch (error) {
-        console.error('Error loading sessions:', error);
+        renderActiveSessions(active);
+        renderPastSessions(past);
+        console.log('✅ Absensi sessions loaded:', { active: active.length, past: past.length });
+    } catch (err) {
+        console.error('❌ Error loading absensi sessions:', err);
+        activeContainer.innerHTML = '<p style="text-align:center;color:#e74c3c;padding:20px;">Gagal memuat sesi absensi.</p>';
+    } finally {
+        hideLoading();
     }
 }
 
 function renderActiveSessions(sessions) {
     const container = document.getElementById('activeSessionsList');
-    
-    if (sessions.length === 0) {
-        container.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">Belum ada sesi aktif</p>';
+    if (!container) return;
+    if (!sessions.length) {
+        container.innerHTML = '<p style="text-align:center;color:#999;padding:20px;">Belum ada sesi aktif</p>';
         return;
     }
-    
-    container.innerHTML = sessions.map(session => {
-        const baseUrl = window.location.origin + window.location.pathname.replace('dashboard.html', '');
-        const link = `${baseUrl}absensi.html?id=${session.id}`;
-        
+    const baseUrl = window.location.origin + window.location.pathname.replace('dashboard.html', '');
+    container.innerHTML = sessions.map(s => {
+        const link = `${baseUrl}absensi.html?id=${s.id}`;
         return `
-            <div class="session-item active">
-                <div class="session-header">
-                    <div>
-                        <div class="session-title">${escapeHtml(session.acara)}</div>
-                        <div class="session-meta">
-                            📅 ${formatDate(session.tanggal)} | 
-                            ⏰ ${session.startTime} - ${session.endTime} WITA
-                        </div>
+        <div class="session-item active">
+            <div class="session-header">
+                <div>
+                    <div class="session-title">${escapeHtml(s.acara)}</div>
+                    <div class="session-meta">
+                        📅 ${formatDate(s.tanggal)} | ⏰ ${s.startTime} - ${s.endTime} WITA
                     </div>
-                    <span class="session-badge active">🟢 Aktif</span>
                 </div>
-                <div class="session-actions">
-                    <button onclick="viewAbsensiLink('${link}', '${escapeHtml(session.acara)}')" class="btn-action primary">
-                        🔗 Lihat Link
-                    </button>
-                    <button onclick="viewAbsensiResults('${session.id}')" class="btn-action secondary">
-                        📊 Lihat Hasil
-                    </button>
-                    <button onclick="closeAbsensiSession('${session.id}')" class="btn-action danger">
-                        🔒 Tutup Absensi
-                    </button>
-                </div>
+                <span class="session-badge active">🟢 Aktif</span>
             </div>
-        `;
+            <div class="session-actions">
+                <button onclick="viewAbsensiLink('${link}','${escapeHtml(s.acara)}')" class="btn-action primary">🔗 Lihat Link</button>
+                <button onclick="viewAbsensiResults('${s.id}')" class="btn-action secondary">📊 Lihat Hasil</button>
+                <button onclick="closeAbsensiSession('${s.id}')" class="btn-action danger">🔒 Tutup Absensi</button>
+            </div>
+        </div>`;
     }).join('');
 }
 
 function renderPastSessions(sessions) {
     const container = document.getElementById('pastSessionsList');
-    
-    if (sessions.length === 0) {
-        container.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">Belum ada riwayat</p>';
+    if (!container) return;
+    if (!sessions.length) {
+        container.innerHTML = '<p style="text-align:center;color:#999;padding:20px;">Belum ada riwayat</p>';
         return;
     }
-    
-    container.innerHTML = sessions.map(session => `
+    container.innerHTML = sessions.map(s => `
         <div class="session-item">
             <div class="session-header">
                 <div>
-                    <div class="session-title">${escapeHtml(session.acara)}</div>
+                    <div class="session-title">${escapeHtml(s.acara)}</div>
                     <div class="session-meta">
-                        📅 ${formatDate(session.tanggal)} | 
-                        ⏰ ${session.startTime} - ${session.endTime} WITA
+                        📅 ${formatDate(s.tanggal)} | ⏰ ${s.startTime} - ${s.endTime} WITA
                     </div>
                 </div>
                 <span class="session-badge closed">🔴 Ditutup</span>
             </div>
             <div class="session-actions">
-                <button onclick="viewAbsensiResults('${session.id}')" class="btn-action secondary">
-                    📊 Lihat Hasil Akhir
-                </button>
-                <button onclick="deleteAbsensiSession('${session.id}')" class="btn-action danger">
-                    🗑️ Hapus
-                </button>
+                <button onclick="viewAbsensiResults('${s.id}')" class="btn-action secondary">📊 Lihat Hasil Akhir</button>
+                <button onclick="deleteAbsensiSession('${s.id}')" class="btn-action danger">🗑️ Hapus</button>
             </div>
         </div>
     `).join('');
 }
 
-function viewAbsensiLink(link, acara) {
-    showAbsensiLinkModal(link, acara);
-}
+function viewAbsensiLink(link, acara) { showAbsensiLinkModal(link, acara); }
 
+// ===== REALTIME RESULT MODAL (tanpa countdown) =====
 async function viewAbsensiResults(sessionId) {
     showLoading();
     try {
-        const sessionDoc = await db.collection('absensi_sessions').doc(sessionId).get();
-        const sessionData = sessionDoc.data();
-        
-        const attendanceSnapshot = await db.collection('absensi_kehadiran')
-            .where('sessionId', '==', sessionId)
-            .orderBy('timestamp', 'asc')
+        const sessionDoc = await absensiSessionsCollection.doc(sessionId).get();
+        if (!sessionDoc.exists) {
+            alert('Sesi tidak ditemukan.');
+            return;
+        }
+        const session = { id: sessionDoc.id, ...sessionDoc.data() };
+        const snap = await db.collection('absensi_kehadiran')
+            .where('sessionId','==',sessionId)
+            .orderBy('timestamp','asc')
             .get();
-        
-        const hadirList = [];
-        attendanceSnapshot.forEach(doc => {
-            hadirList.push(doc.data());
-        });
-        
-        const hadirNIMs = hadirList.map(h => h.nim);
-        const tidakHadirList = [];
-        
+        const hadir = [];
+        snap.forEach(d => hadir.push(d.data()));
+        const hadirNIMs = hadir.map(h => h.nim);
+        const tidakHadir = [];
         Object.keys(MEMBERS_DATA.members).forEach(nim => {
             if (!hadirNIMs.includes(nim)) {
-                tidakHadirList.push({
-                    nim: nim,
-                    nama: MEMBERS_DATA.members[nim].nama
-                });
+                tidakHadir.push({ nim, nama: MEMBERS_DATA.members[nim].nama });
             }
         });
-        
-        showAbsensiResultsModal(sessionData, hadirList, tidakHadirList);
-        
-    } catch (error) {
-        console.error('Error loading results:', error);
-        alert('❌ Gagal memuat data absensi.');
+        showAbsensiResultsModal(session, hadir, tidakHadir);
+    } catch (err) {
+        console.error('Error loading results:', err);
+        alert('Gagal memuat data absensi.');
     } finally {
         hideLoading();
     }
@@ -958,419 +762,267 @@ function showAbsensiResultsModal(session, hadir, tidakHadir) {
     modal.className = 'modal';
     modal.style.display = 'block';
     modal.id = 'resultsModal';
+    const totalMembers = Object.keys(MEMBERS_DATA.members).length;
     modal.innerHTML = `
-        <div class="modal-content" style="max-width: 900px;">
-            <span class="close" onclick="stopRealtimeMonitoring(); this.closest('.modal').remove()">&times;</span>
+        <div class="modal-content" style="max-width:900px;">
+            <span class="close" onclick="stopRealtimeMonitoring();this.closest('.modal').remove()">&times;</span>
             <h2>📊 Hasil Absensi</h2>
-            
             <div class="session-info-box">
                 <h3>${escapeHtml(session.acara)}</h3>
                 <p>📅 ${formatDate(session.tanggal)} | ⏰ ${session.startTime} - ${session.endTime} WITA</p>
-                <div class="auto-refresh-badge">
-                    🔄 Auto refresh setiap 5 detik
-                </div>
+                <div class="auto-refresh-badge">🔄 Auto refresh setiap 5 detik</div>
             </div>
-            
             <div class="stats-counter-grid">
                 <div class="counter-card hadir">
                     <div class="counter-value" id="liveHadirCount">${hadir.length}</div>
                     <div class="counter-label">✅ Hadir</div>
-                    <div class="counter-percent">${((hadir.length / Object.keys(MEMBERS_DATA.members).length) * 100).toFixed(1)}%</div>
+                    <div class="counter-percent">${((hadir.length/totalMembers)*100).toFixed(1)}%</div>
                 </div>
                 <div class="counter-card tidak-hadir">
                     <div class="counter-value" id="liveTidakHadirCount">${tidakHadir.length}</div>
                     <div class="counter-label">❌ Tidak Hadir</div>
-                    <div class="counter-percent">${((tidakHadir.length / Object.keys(MEMBERS_DATA.members).length) * 100).toFixed(1)}%</div>
+                    <div class="counter-percent">${((tidakHadir.length/totalMembers)*100).toFixed(1)}%</div>
                 </div>
             </div>
-            
             <div class="refresh-info-box">
                 <div class="refresh-info-content">
                     <span class="refresh-label">Last Update:</span>
                     <span class="refresh-time" id="lastUpdateTime">Baru saja</span>
                 </div>
-                <button onclick="manualRefreshResults()" class="btn-refresh-manual">
-                    🔄 Refresh
-                </button>
+                <button onclick="manualRefreshResults()" class="btn-refresh-manual">🔄 Refresh</button>
             </div>
-            
             <div class="absensi-tables-container">
                 <div class="absensi-table-section">
                     <div class="table-header">
                         <h4>✅ Daftar Hadir (<span id="hadirCountText">${hadir.length}</span>)</h4>
-                        <button onclick="exportHadirCSV('${escapeHtml(session.acara)}')" class="btn-export">
-                            📥 Export CSV
-                        </button>
+                        <button onclick="exportHadirCSV('${escapeHtml(session.acara)}')" class="btn-export">📥 Export CSV</button>
                     </div>
                     <div class="table-wrapper">
                         <table class="absensi-table">
-                            <thead>
-                                <tr>
-                                    <th style="width: 50px;">No</th>
-                                    <th>Nama</th>
-                                    <th class="hide-mobile" style="width: 130px;">NIM</th>
-                                    <th style="width: 100px;">Waktu</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th style="width:50px;">No</th><th>Nama</th><th class="hide-mobile" style="width:130px;">NIM</th><th style="width:100px;">Waktu</th></tr></thead>
                             <tbody id="hadirTableBody">
-                                ${hadir.map((h, i) => `
+                                ${hadir.map((h,i)=>`
                                     <tr>
-                                        <td>${i + 1}</td>
-                                        <td>
-                                            <strong>${escapeHtml(h.nama)}</strong>
-                                            <span class="show-mobile" style="display: none; font-size: 11px; color: #999; margin-top: 3px;">${h.nim}</span>
+                                        <td>${i+1}</td>
+                                        <td><strong>${escapeHtml(h.nama)}</strong>
+                                            <span class="show-mobile" style="display:none;font-size:11px;color:#999;margin-top:3px;">${h.nim}</span>
                                         </td>
                                         <td class="hide-mobile"><small>${h.nim}</small></td>
                                         <td><small>${h.waktu}</small></td>
-                                    </tr>
-                                `).join('')}
+                                    </tr>`).join('')}
                             </tbody>
                         </table>
                     </div>
                 </div>
-                
                 <div class="absensi-table-section">
                     <div class="table-header">
                         <h4>❌ Tidak Hadir (<span id="tidakHadirCountText">${tidakHadir.length}</span>)</h4>
                     </div>
                     <div class="table-wrapper">
                         <table class="absensi-table">
-                            <thead>
-                                <tr>
-                                    <th style="width: 50px;">No</th>
-                                    <th>Nama</th>
-                                    <th style="width: 110px;">Aksi</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th style="width:50px;">No</th><th>Nama</th><th style="width:110px;">Aksi</th></tr></thead>
                             <tbody id="tidakHadirTableBody">
-                                ${tidakHadir.map((t, i) => `
+                                ${tidakHadir.map((t,i)=>`
                                     <tr id="row-${t.nim}">
-                                        <td>${i + 1}</td>
-                                        <td>
-                                            <strong>${escapeHtml(t.nama)}</strong>
-                                            <div style="font-size: 11px; color: #999; margin-top: 3px;">${t.nim}</div>
+                                        <td>${i+1}</td>
+                                        <td><strong>${escapeHtml(t.nama)}</strong>
+                                            <div style="font-size:11px;color:#999;margin-top:3px;">${t.nim}</div>
                                         </td>
-                                        <td>
-                                            <button onclick="quickAddIzin('${escapeHtml(session.acara)}', '${t.nim}', '${escapeHtml(t.nama)}')" class="btn-izin">
-                                                ➕ Izin
-                                            </button>
-                                        </td>
-                                    </tr>
-                                `).join('')}
+                                        <td><button onclick="quickAddIzin('${escapeHtml(session.acara)}','${t.nim}','${escapeHtml(t.nama)}')" class="btn-izin">➕ Izin</button></td>
+                                    </tr>`).join('')}
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
-            
-            <button onclick="stopRealtimeMonitoring(); this.closest('.modal').remove()" class="btn-close-modal">
-                ✕ Tutup
-            </button>
-        </div>
-    `;
+            <button onclick="stopRealtimeMonitoring();this.closest('.modal').remove()" class="btn-close-modal">✕ Tutup</button>
+        </div>`;
     document.body.appendChild(modal);
-    
     startRealtimeMonitoring(session.id);
 }
 
-// Real-time monitoring variables
+// realtime simple (auto refresh 5 detik)
 let realtimeInterval = null;
 let currentSessionId = null;
-let lastHadirCount = 0;
 
 function startRealtimeMonitoring(sessionId) {
     currentSessionId = sessionId;
-    lastHadirCount = 0;
-    
-    // Auto refresh every 5 seconds
-    realtimeInterval = setInterval(() => {
-        refreshAbsensiData(sessionId);
-    }, 5000);
-    
-    console.log('🔄 Real-time monitoring started');
+    realtimeInterval = setInterval(() => refreshAbsensiData(sessionId), 5000);
 }
 
 function stopRealtimeMonitoring() {
-    if (realtimeInterval) {
-        clearInterval(realtimeInterval);
-        realtimeInterval = null;
-    }
+    if (realtimeInterval) clearInterval(realtimeInterval);
+    realtimeInterval = null;
     currentSessionId = null;
-    lastHadirCount = 0;
-    console.log('⏹️ Real-time monitoring stopped');
 }
 
 async function refreshAbsensiData(sessionId) {
     try {
-        const attendanceSnapshot = await db.collection('absensi_kehadiran')
-            .where('sessionId', '==', sessionId)
-            .orderBy('timestamp', 'asc')
+        const snap = await db.collection('absensi_kehadiran')
+            .where('sessionId','==',sessionId)
+            .orderBy('timestamp','asc')
             .get();
-        
-        const hadirList = [];
-        attendanceSnapshot.forEach(doc => {
-            hadirList.push(doc.data());
+        const hadir = [];
+        snap.forEach(d => hadir.push(d.data()));
+        const hadirNIMs = hadir.map(h=>h.nim);
+        const tidakHadir = [];
+        Object.keys(MEMBERS_DATA.members).forEach(nim=>{
+            if (!hadirNIMs.includes(nim)) tidakHadir.push({nim, nama: MEMBERS_DATA.members[nim].nama});
         });
-        
-        const hadirNIMs = hadirList.map(h => h.nim);
-        const tidakHadirList = [];
-        
-        Object.keys(MEMBERS_DATA.members).forEach(nim => {
-            if (!hadirNIMs.includes(nim)) {
-                tidakHadirList.push({
-                    nim: nim,
-                    nama: MEMBERS_DATA.members[nim].nama
-                });
-            }
-        });
-        
-        lastHadirCount = hadirList.length;
-        
-        updateRealtimeUI(hadirList, tidakHadirList);
-        
+        updateRealtimeUI(hadir, tidakHadir);
         const now = new Date();
-        const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        const lastUpdateEl = document.getElementById('lastUpdateTime');
-        if (lastUpdateEl) {
-            lastUpdateEl.textContent = timeStr;
-        }
-        
-    } catch (error) {
-        console.error('Error refreshing data:', error);
+        const el = document.getElementById('lastUpdateTime');
+        if (el) el.textContent = now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    } catch(e){
+        console.error('Error refresh absensi:', e);
     }
 }
 
 function updateRealtimeUI(hadir, tidakHadir) {
-    const totalMembers = Object.keys(MEMBERS_DATA.members).length;
-    
-    const hadirCountEl = document.getElementById('liveHadirCount');
-    const tidakHadirCountEl = document.getElementById('liveTidakHadirCount');
-    const hadirCountTextEl = document.getElementById('hadirCountText');
-    const tidakHadirCountTextEl = document.getElementById('tidakHadirCountText');
-    
-    if (hadirCountEl) {
-        hadirCountEl.textContent = hadir.length;
-        const percentCard = hadirCountEl.closest('.counter-card');
-        if (percentCard) {
-            const percentEl = percentCard.querySelector('.counter-percent');
-            if (percentEl) {
-                percentEl.textContent = `${((hadir.length / totalMembers) * 100).toFixed(1)}%`;
-            }
-        }
+    const total = Object.keys(MEMBERS_DATA.members).length;
+    const hCount = document.getElementById('liveHadirCount');
+    const thCount = document.getElementById('liveTidakHadirCount');
+    if (hCount) {
+        hCount.textContent = hadir.length;
+        const p = hCount.closest('.counter-card').querySelector('.counter-percent');
+        if (p) p.textContent = `${((hadir.length/total)*100).toFixed(1)}%`;
     }
-    
-    if (tidakHadirCountEl) {
-        tidakHadirCountEl.textContent = tidakHadir.length;
-        const percentCard = tidakHadirCountEl.closest('.counter-card');
-        if (percentCard) {
-            const percentEl = percentCard.querySelector('.counter-percent');
-            if (percentEl) {
-                percentEl.textContent = `${((tidakHadir.length / totalMembers) * 100).toFixed(1)}%`;
-            }
-        }
+    if (thCount) {
+        thCount.textContent = tidakHadir.length;
+        const p = thCount.closest('.counter-card').querySelector('.counter-percent');
+        if (p) p.textContent = `${((tidakHadir.length/total)*100).toFixed(1)}%`;
     }
-    
-    if (hadirCountTextEl) hadirCountTextEl.textContent = hadir.length;
-    if (tidakHadirCountTextEl) tidakHadirCountTextEl.textContent = tidakHadir.length;
-    
-    const hadirTableBody = document.getElementById('hadirTableBody');
-    if (hadirTableBody) {
-        hadirTableBody.innerHTML = hadir.map((h, i) => `
+    const hBody = document.getElementById('hadirTableBody');
+    if (hBody) {
+        hBody.innerHTML = hadir.map((h,i)=>`
             <tr>
-                <td>${i + 1}</td>
-                <td>
-                    <strong>${escapeHtml(h.nama)}</strong>
-                    <span class="show-mobile" style="display: none; font-size: 11px; color: #999; margin-top: 3px;">${h.nim}</span>
+                <td>${i+1}</td>
+                <td><strong>${escapeHtml(h.nama)}</strong>
+                    <span class="show-mobile" style="display:none;font-size:11px;color:#999;margin-top:3px;">${h.nim}</span>
                 </td>
                 <td class="hide-mobile"><small>${h.nim}</small></td>
                 <td><small>${h.waktu}</small></td>
-            </tr>
-        `).join('');
+            </tr>`).join('');
     }
-    
-    const tidakHadirTableBody = document.getElementById('tidakHadirTableBody');
-    if (tidakHadirTableBody) {
-        tidakHadirTableBody.innerHTML = tidakHadir.map((t, i) => `
+    const thBody = document.getElementById('tidakHadirTableBody');
+    if (thBody) {
+        thBody.innerHTML = tidakHadir.map((t,i)=>`
             <tr id="row-${t.nim}">
-                <td>${i + 1}</td>
-                <td>
-                    <strong>${escapeHtml(t.nama)}</strong>
-                    <div style="font-size: 11px; color: #999; margin-top: 3px;">${t.nim}</div>
+                <td>${i+1}</td>
+                <td><strong>${escapeHtml(t.nama)}</strong>
+                    <div style="font-size:11px;color:#999;margin-top:3px;">${t.nim}</div>
                 </td>
-                <td>
-                    <button onclick="quickAddIzin('${currentSessionId}', '${t.nim}', '${escapeHtml(t.nama)}')" class="btn-izin">
-                        ➕ Izin
-                    </button>
-                </td>
-            </tr>
-        `).join('');
+                <td><button onclick="quickAddIzin('${currentSessionId}','${t.nim}','${escapeHtml(t.nama)}')" class="btn-izin">➕ Izin</button></td>
+            </tr>`).join('');
     }
+    const hText = document.getElementById('hadirCountText');
+    const thText = document.getElementById('tidakHadirCountText');
+    if (hText) hText.textContent = hadir.length;
+    if (thText) thText.textContent = tidakHadir.length;
 }
 
 function manualRefreshResults() {
-    if (currentSessionId) {
-        refreshAbsensiData(currentSessionId);
-    }
+    if (currentSessionId) refreshAbsensiData(currentSessionId);
 }
 
-function quickAddIzin(sessionAcara, nim, nama) {
-    const keterangan = prompt(`Keterangan izin untuk ${nama}:`, 'Sakit');
-    
-    if (keterangan) {
-        showLoading();
-        
-        const data = {
-            acara: sessionAcara,
-            tanggal: new Date().toISOString().split('T')[0],
-            izin: [{
-                nim: nim,
-                nama: nama,
-                keterangan: keterangan
-            }],
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        };
-        
-        db.collection('absensi').add(data)
-            .then(() => {
-                hideLoading();
-                
-                const row = document.getElementById(`row-${nim}`);
-                if (row) {
-                    row.remove();
-                }
-                
-                const countEl = document.getElementById('liveTidakHadirCount');
-                if (countEl) {
-                    const newCount = parseInt(countEl.textContent) - 1;
-                    countEl.textContent = newCount;
-                    
-                    const percentCard = countEl.closest('.counter-card');
-                    if (percentCard) {
-                        const percentEl = percentCard.querySelector('.counter-percent');
-                        if (percentEl) {
-                            const totalMembers = Object.keys(MEMBERS_DATA.members).length;
-                            percentEl.textContent = `${((newCount / totalMembers) * 100).toFixed(1)}%`;
-                        }
-                    }
-                }
-                
-                const countTextEl = document.getElementById('tidakHadirCountText');
-                if (countTextEl) {
-                    countTextEl.textContent = parseInt(countTextEl.textContent) - 1;
-                }
-                
-                alert(`✅ ${nama} berhasil ditandai izin: ${keterangan}`);
-            })
-            .catch(error => {
-                hideLoading();
-                console.error('Error:', error);
-                alert('❌ Gagal menyimpan data izin.');
-            });
-    }
+function quickAddIzin(acara, nim, nama) {
+    const ket = prompt(`Keterangan izin untuk ${nama}:`, 'Sakit');
+    if (!ket) return;
+    showLoading();
+    const data = {
+        acara,
+        tanggal: new Date().toISOString().split('T')[0],
+        izin: [{nim, nama, keterangan: ket}],
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    absensiCollection.add(data).then(()=>{
+        hideLoading();
+        alert(`✅ ${nama} ditandai izin: ${ket}`);
+        const row = document.getElementById(`row-${nim}`);
+        if (row) row.remove();
+    }).catch(err=>{
+        hideLoading();
+        console.error('Error simpan izin:', err);
+        alert('Gagal menyimpan izin.');
+    });
 }
 
 function exportHadirCSV(acara) {
-    const hadirTableBody = document.getElementById('hadirTableBody');
-    if (!hadirTableBody) return;
-    
+    const body = document.getElementById('hadirTableBody');
+    if (!body) return;
     let csv = 'No,Nama,NIM,Waktu Absen\n';
-    
-    const rows = hadirTableBody.querySelectorAll('tr');
-    rows.forEach(row => {
-        const cells = row.querySelectorAll('td');
-        if (cells.length >= 3) {
-            const no = cells[0].textContent.trim();
-            const namaCell = cells[1].querySelector('strong');
-            const nama = namaCell ? namaCell.textContent.trim() : '';
-            const nimCell = cells[2].querySelector('small') || cells[1].querySelector('.show-mobile');
-            const nim = nimCell ? nimCell.textContent.trim() : '';
-            const waktuCell = cells[cells.length - 1].querySelector('small');
-            const waktu = waktuCell ? waktuCell.textContent.trim() : '';
-            
-            csv += `${no},"${nama}",${nim},${waktu}\n`;
-        }
+    body.querySelectorAll('tr').forEach(row=>{
+        const tds = row.querySelectorAll('td');
+        if (tds.length < 3) return;
+        const no = tds[0].textContent.trim();
+        const nama = tds[1].querySelector('strong')?.textContent.trim() || '';
+        const nim = (tds[2].querySelector('small') || tds[1].querySelector('.show-mobile'))?.textContent.trim() || '';
+        const waktu = tds[tds.length-1].querySelector('small')?.textContent.trim() || '';
+        csv += `${no},"${nama}",${nim},${waktu}\n`;
     });
-    
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = window.URL.createObjectURL(blob);
+    const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Absensi_${acara.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `Absensi_${acara.replace(/\s+/g,'_')}_${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
-    window.URL.revokeObjectURL(url);
+    URL.revokeObjectURL(url);
 }
 
+// ===== CLOSE / DELETE SESSION =====
 async function closeAbsensiSession(sessionId) {
-    if (!confirm('Tutup sesi absensi ini? Data tidak hadir akan di-generate otomatis.')) {
-        return;
-    }
-    
+    if (!confirm('Tutup sesi absensi ini?')) return;
     showLoading();
     try {
-        await db.collection('absensi_sessions').doc(sessionId).update({
+        await absensiSessionsCollection.doc(sessionId).update({
             status: 'closed',
             closedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
-        
         alert('✅ Sesi absensi ditutup!');
-        loadAbsensiSessions();
-        
-    } catch (error) {
-        console.error('Error closing session:', error);
-        alert('❌ Gagal menutup sesi.');
+        await loadAbsensiSessions();
+    } catch (e) {
+        console.error('Error closing session:', e);
+        alert('Gagal menutup sesi.');
     } finally {
         hideLoading();
     }
 }
 
 async function deleteAbsensiSession(sessionId) {
-    if (!confirm('Hapus sesi absensi ini beserta semua datanya?')) {
-        return;
-    }
-    
+    if (!confirm('Hapus sesi absensi ini beserta datanya?')) return;
     showLoading();
     try {
-        await db.collection('absensi_sessions').doc(sessionId).delete();
-        
-        const attendanceSnapshot = await db.collection('absensi_kehadiran')
-            .where('sessionId', '==', sessionId)
-            .get();
-        
+        await absensiSessionsCollection.doc(sessionId).delete();
+        const snap = await db.collection('absensi_kehadiran').where('sessionId','==',sessionId).get();
         const batch = db.batch();
-        attendanceSnapshot.forEach(doc => {
-            batch.delete(doc.ref);
-        });
+        snap.forEach(d => batch.delete(d.ref));
         await batch.commit();
-        
         alert('✅ Sesi absensi dihapus!');
-        loadAbsensiSessions();
-        
-    } catch (error) {
-        console.error('Error deleting session:', error);
-        alert('❌ Gagal menghapus sesi.');
+        await loadAbsensiSessions();
+    } catch (e) {
+        console.error('Error delete session:', e);
+        alert('Gagal menghapus sesi.');
     } finally {
         hideLoading();
     }
 }
 
+// ===== ADMIN PANEL (DASHBOARD, TODO, JADWAL, ABSENSI) =====
 function openAdminPanel() {
     const modal = document.createElement('div');
     modal.id = 'adminPanelModal';
     modal.className = 'modal';
     modal.style.display = 'block';
-    
     modal.innerHTML = `
-        <div class="modal-content" style="max-width: 1000px;">
+        <div class="modal-content" style="max-width:1000px;">
             <span class="close" onclick="closeAdminPanel()">&times;</span>
             <h2>⚙️ Panel Admin</h2>
-            
             <div class="admin-tabs">
                 <button class="admin-tab-btn active" data-tab="dashboard">📊 Dashboard</button>
                 <button class="admin-tab-btn" data-tab="allTodos">📋 Semua To-Do</button>
                 <button class="admin-tab-btn" data-tab="manageJadwal">📅 Kelola Jadwal</button>
                 <button class="admin-tab-btn" data-tab="manageAbsensi">📋 Kelola Absensi</button>
             </div>
-
             <div id="adminDashboard" class="admin-section active">
                 <h3>Dashboard Statistik</h3>
                 <div class="stats-grid">
@@ -1395,11 +1047,9 @@ function openAdminPanel() {
                         <div class="stat-label">Total Anggota</div>
                     </div>
                 </div>
-                
-                <h4 style="margin-top: 30px;">Statistik Per Divisi</h4>
+                <h4 style="margin-top:30px;">Statistik Per Divisi</h4>
                 <div id="divisiStats"></div>
             </div>
-
             <div id="adminAllTodos" class="admin-section">
                 <h3>Semua To-Do List</h3>
                 <div class="filter-section">
@@ -1415,7 +1065,6 @@ function openAdminPanel() {
                 </div>
                 <div id="adminTodosList"></div>
             </div>
-
             <div id="adminManageJadwal" class="admin-section">
                 <h3>Kelola Jadwal Admin</h3>
                 <form id="adminJadwalForm" class="admin-form">
@@ -1445,22 +1094,19 @@ function openAdminPanel() {
                     </div>
                     <button type="submit" class="btn-save">➕ Tambah Jadwal</button>
                 </form>
-                
-                <hr style="margin: 30px 0;">
+                <hr style="margin:30px 0;">
                 <h4>List Jadwal</h4>
                 <div id="adminJadwalList"></div>
             </div>
-
             <div id="adminManageAbsensi" class="admin-section">
                 <h3>Kelola Sesi Absensi Otomatis</h3>
-                
-                <div class="admin-form" style="background: #f0f8ff; border-left: 4px solid #667eea;">
-                    <h4 style="margin-bottom: 20px;">➕ Buat Sesi Absensi Baru</h4>
+                <div class="admin-form" style="background:#f0f8ff;border-left:4px solid #667eea;">
+                    <h4 style="margin-bottom:20px;">➕ Buat Sesi Absensi Baru</h4>
                     <form id="createAbsensiSessionForm">
                         <div class="form-row">
                             <div class="form-field">
                                 <label>Nama Acara/Kegiatan</label>
-                                <input type="text" id="sessionAcara" placeholder="Rapat Koordinasi" required>
+                                <input type="text" id="sessionAcara" required>
                             </div>
                             <div class="form-field">
                                 <label>Tanggal</label>
@@ -1480,20 +1126,14 @@ function openAdminPanel() {
                         <button type="submit" class="btn-save">🔗 Buat Link Absensi</button>
                     </form>
                 </div>
-                
-                <hr style="margin: 30px 0;">
-                
+                <hr style="margin:30px 0;">
                 <h4>📋 Sesi Absensi Aktif</h4>
                 <div id="activeSessionsList"></div>
-                
-                <hr style="margin: 30px 0;">
-                
+                <hr style="margin:30px 0;">
                 <h4>📜 Riwayat Absensi</h4>
                 <div id="pastSessionsList"></div>
             </div>
-        </div>
-    `;
-    
+        </div>`;
     document.body.appendChild(modal);
     initAdminTabs();
     loadAdminDashboard();
@@ -1501,190 +1141,124 @@ function openAdminPanel() {
 }
 
 function closeAdminPanel() {
-    const modal = document.getElementById('adminPanelModal');
-    if (modal) {
-        modal.remove();
-    }
+    const m = document.getElementById('adminPanelModal');
+    if (m) m.remove();
 }
 
 function initAdminTabs() {
     document.querySelectorAll('.admin-tab-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const tab = this.dataset.tab;
-            
-            document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.admin-tab-btn').forEach(b=>b.classList.remove('active'));
             this.classList.add('active');
-            
-            document.querySelectorAll('.admin-section').forEach(section => {
-                section.classList.remove('active');
-            });
-            
-            const targetSection = document.getElementById(`admin${capitalize(tab)}`);
-            if (targetSection) {
-                targetSection.classList.add('active');
-            }
-            
-            if (tab === 'dashboard') {
-                loadAdminDashboard();
-            } else if (tab === 'allTodos') {
-                loadAdminAllTodos();
-            } else if (tab === 'manageJadwal') {
-                loadAdminJadwalList();
-            } else if (tab === 'manageAbsensi') {
-                initAbsensiSessionHandlers();
-            }
+            document.querySelectorAll('.admin-section').forEach(sec=>sec.classList.remove('active'));
+            const target = document.getElementById(`admin${capitalize(tab)}`);
+            if (target) target.classList.add('active');
+            if (tab === 'dashboard') loadAdminDashboard();
+            else if (tab === 'allTodos') loadAdminAllTodos();
+            else if (tab === 'manageJadwal') loadAdminJadwalList();
+            else if (tab === 'manageAbsensi') initAbsensiSessionHandlers();
         });
     });
-    
-    const jadwalForm = document.getElementById('adminJadwalForm');
-    if (jadwalForm) {
-        jadwalForm.addEventListener('submit', handleAdminJadwalSubmit);
+    const form = document.getElementById('adminJadwalForm');
+    if (form && !form.dataset.bound) {
+        form.addEventListener('submit', handleAdminJadwalSubmit);
+        form.dataset.bound = 'true';
     }
 }
 
 async function loadAdminDashboard() {
-    let totalTodos = 0;
-    let urgentTodos = 0;
-    let completedTodos = 0;
-    
-    const divisiStatsData = {};
-    
-    Object.keys(divisiInfo).forEach(divisi => {
-        const todos = todoData[divisi] || [];
-        totalTodos += todos.length;
-        urgentTodos += todos.filter(t => t.prioritas === 'urgent' && !t.completed).length;
-        completedTodos += todos.filter(t => t.completed).length;
-        
-        divisiStatsData[divisi] = {
+    let total=0, urgent=0, completed=0;
+    const divStats = {};
+    Object.keys(divisiInfo).forEach(d=>{
+        const todos = todoData[d] || [];
+        total += todos.length;
+        urgent += todos.filter(t=>t.prioritas==='urgent' && !t.completed).length;
+        completed += todos.filter(t=>t.completed).length;
+        divStats[d] = {
             total: todos.length,
-            completed: todos.filter(t => t.completed).length,
-            urgent: todos.filter(t => t.prioritas === 'urgent' && !t.completed).length
+            completed: todos.filter(t=>t.completed).length,
+            urgent: todos.filter(t=>t.prioritas==='urgent' && !t.completed).length
         };
     });
-    
-    document.getElementById('totalTodos').textContent = totalTodos;
-    document.getElementById('urgentTodos').textContent = urgentTodos;
-    document.getElementById('completedTodos').textContent = completedTodos;
-    
-    const divisiStatsEl = document.getElementById('divisiStats');
-    divisiStatsEl.innerHTML = Object.keys(divisiInfo).map(divisi => {
-        const info = divisiInfo[divisi];
-        const stats = divisiStatsData[divisi];
-        const progress = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
-        
+    document.getElementById('totalTodos').textContent = total;
+    document.getElementById('urgentTodos').textContent = urgent;
+    document.getElementById('completedTodos').textContent = completed;
+    const container = document.getElementById('divisiStats');
+    container.innerHTML = Object.keys(divisiInfo).map(d=>{
+        const info = divisiInfo[d];
+        const s = divStats[d];
+        const prog = s.total ? Math.round((s.completed/s.total)*100) : 0;
         return `
             <div class="divisi-stat-item">
                 <div class="divisi-stat-header">
                     <span class="divisi-stat-name">${info.emoji} ${info.nama}</span>
-                    <span class="divisi-stat-progress">${progress}%</span>
+                    <span class="divisi-stat-progress">${prog}%</span>
                 </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: ${progress}%"></div>
-                </div>
+                <div class="progress-bar"><div class="progress-fill" style="width:${prog}%"></div></div>
                 <div class="divisi-stat-details">
-                    Total: ${stats.total} | Selesai: ${stats.completed} | Penting: ${stats.urgent}
+                    Total: ${s.total} | Selesai: ${s.completed} | Penting: ${s.urgent}
                 </div>
-            </div>
-        `;
+            </div>`;
     }).join('');
 }
 
 function populateFilterDivisi() {
-    const select = document.getElementById('filterDivisi');
-    if (select) {
-        Object.keys(divisiInfo).forEach(divisi => {
-            const option = document.createElement('option');
-            option.value = divisi;
-            option.textContent = `${divisiInfo[divisi].emoji} ${divisiInfo[divisi].nama}`;
-            select.appendChild(option);
-        });
-    }
+    const sel = document.getElementById('filterDivisi');
+    if (!sel || sel.dataset.filled) return;
+    Object.keys(divisiInfo).forEach(d=>{
+        const o = document.createElement('option');
+        o.value = d;
+        o.textContent = `${divisiInfo[d].emoji} ${divisiInfo[d].nama}`;
+        sel.appendChild(o);
+    });
+    sel.dataset.filled = 'true';
 }
 
-function filterAdminTodos() {
-    loadAdminAllTodos();
-}
+function filterAdminTodos() { loadAdminAllTodos(); }
 
 function loadAdminAllTodos() {
-    const filterDivisi = document.getElementById('filterDivisi').value;
-    const filterStatus = document.getElementById('filterStatus').value;
-    
-    let allTodos = [];
-    
-    if (filterDivisi === 'all') {
-        Object.keys(divisiInfo).forEach(divisi => {
-            (todoData[divisi] || []).forEach(todo => {
-                allTodos.push({ ...todo, divisi });
-            });
+    const fDiv = document.getElementById('filterDivisi').value;
+    const fStat = document.getElementById('filterStatus').value;
+    let all = [];
+    if (fDiv === 'all') {
+        Object.keys(divisiInfo).forEach(d=>{
+            (todoData[d]||[]).forEach(t=>all.push({...t, divisi:d}));
         });
     } else {
-        (todoData[filterDivisi] || []).forEach(todo => {
-            allTodos.push({ ...todo, divisi: filterDivisi });
-        });
+        (todoData[fDiv]||[]).forEach(t=>all.push({...t, divisi:fDiv}));
     }
-    
-    if (filterStatus === 'active') {
-        allTodos = allTodos.filter(t => !t.completed);
-    } else if (filterStatus === 'completed') {
-        allTodos = allTodos.filter(t => t.completed);
-    }
-    
-    allTodos.sort((a, b) => new Date(a.tanggal) - new Date(b.tanggal));
-    
-    const listEl = document.getElementById('adminTodosList');
-    if (allTodos.length === 0) {
-        listEl.innerHTML = '<div class="empty-state"><p>Tidak ada to-do</p></div>';
+    if (fStat === 'active') all = all.filter(t=>!t.completed);
+    else if (fStat === 'completed') all = all.filter(t=>t.completed);
+    all.sort((a,b)=> new Date(a.tanggal) - new Date(b.tanggal));
+    const list = document.getElementById('adminTodosList');
+    if (!all.length) {
+        list.innerHTML = '<div class="empty-state"><p>Tidak ada to-do</p></div>';
         return;
     }
-    
-    listEl.innerHTML = allTodos.map(todo => `
-        <div class="admin-todo-item ${todo.completed ? 'completed' : ''}">
-            <div class="admin-todo-badge ${todo.prioritas}">${getPriorityLabel(todo.prioritas)}</div>
-            <div class="admin-todo-divisi">${divisiInfo[todo.divisi].emoji} ${divisiInfo[todo.divisi].nama}</div>
-            <div class="admin-todo-title">${escapeHtml(todo.nama)}</div>
+    list.innerHTML = all.map(t=>`
+        <div class="admin-todo-item ${t.completed?'completed':''}">
+            <div class="admin-todo-badge ${t.prioritas}">${getPriorityLabel(t.prioritas)}</div>
+            <div class="admin-todo-divisi">${divisiInfo[t.divisi].emoji} ${divisiInfo[t.divisi].nama}</div>
+            <div class="admin-todo-title">${escapeHtml(t.nama)}</div>
             <div class="admin-todo-meta">
-                📅 ${formatDate(todo.tanggal)} | ⏰ ${todo.waktu} WITA
-                ${todo.deskripsi ? `<br>📝 ${escapeHtml(todo.deskripsi)}` : ''}
+                📅 ${formatDate(t.tanggal)} | ⏰ ${t.waktu} WITA
+                ${t.deskripsi?`<br>📝 ${escapeHtml(t.deskripsi)}`:''}
             </div>
             <div class="admin-todo-actions">
-                ${!todo.completed ? `
-                    <button class="btn-check" onclick="adminToggleTodo('${todo.id}', '${todo.divisi}', true)">✓ Tandai Selesai</button>
-                ` : `
-                    <button class="btn-uncheck" onclick="adminToggleTodo('${todo.id}', '${todo.divisi}', false)">↻ Batal Selesai</button>
+                ${!t.completed?`
+                    <button class="btn-check" onclick="adminToggleTodo('${t.id}','${t.divisi}',true)">✓ Tandai Selesai</button>
+                `:`
+                    <button class="btn-uncheck" onclick="adminToggleTodo('${t.id}','${t.divisi}',false)">↻ Batal Selesai</button>
                 `}
-                <button class="btn-delete" onclick="adminDeleteTodo('${todo.id}', '${todo.divisi}')">🗑️ Hapus</button>
+                <button class="btn-delete" onclick="adminDeleteTodo('${t.id}','${t.divisi}')">🗑️ Hapus</button>
             </div>
-        </div>
-    `).join('');
+        </div>`).join('');
 }
 
-function getPriorityLabel(priority) {
-    const labels = {
-        'urgent': '⚠️ Penting',
-        'medium': '📌 Sedang',
-        'low': '✓ Tidak'
-    };
-    return labels[priority] || priority;
-}
-
-async function adminToggleTodo(id, divisi, status) {
-    await toggleComplete(id, divisi, status);
-    loadAdminAllTodos();
-    loadAdminDashboard();
-}
-
-async function adminDeleteTodo(id, divisi) {
-    if (confirm('Yakin ingin menghapus to-do ini?')) {
-        await deleteTodoFromFirebase(id);
-        todoData[divisi] = todoData[divisi].filter(todo => todo.id !== id);
-        loadAdminAllTodos();
-        loadAdminDashboard();
-    }
-}
-
+// ===== JADWAL ADMIN (tambah / hapus) =====
 async function handleAdminJadwalSubmit(e) {
     e.preventDefault();
-    
     const jadwal = {
         judul: document.getElementById('jadwalJudul').value,
         tanggal: document.getElementById('jadwalTanggal').value,
@@ -1692,76 +1266,58 @@ async function handleAdminJadwalSubmit(e) {
         tempat: document.getElementById('jadwalTempat').value,
         deskripsi: document.getElementById('jadwalDeskripsi').value
     };
-    
     showLoading();
     try {
-        await jadwalCollection.add({
-            ...jadwal,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        
+        await jadwalCollection.add({...jadwal, createdAt: firebase.firestore.FieldValue.serverTimestamp()});
         await loadJadwalFromFirebase();
         loadAdminJadwalList();
-        
         e.target.reset();
         alert('✅ Jadwal berhasil ditambahkan!');
-    } catch (error) {
-        console.error('Error adding jadwal:', error);
+    } catch(e){
+        console.error('Error adding jadwal:', e);
         alert('❌ Gagal menambahkan jadwal.');
-    } finally {
-        hideLoading();
-    }
+    } finally { hideLoading(); }
 }
 
 async function loadAdminJadwalList() {
-    const listEl = document.getElementById('adminJadwalList');
-    
-    if (jadwalAdmin.length === 0) {
-        listEl.innerHTML = '<p style="text-align: center; color: #999;">Belum ada jadwal</p>';
+    const list = document.getElementById('adminJadwalList');
+    if (!jadwalAdmin.length) {
+        list.innerHTML = '<p style="text-align:center;color:#999;">Belum ada jadwal</p>';
         return;
     }
-    
-    listEl.innerHTML = jadwalAdmin.map(jadwal => `
+    list.innerHTML = jadwalAdmin.map(j=>`
         <div class="list-item">
             <div class="list-item-content">
-                <div class="list-item-title">${escapeHtml(jadwal.judul)}</div>
-                <div class="list-item-info">📅 ${formatDate(jadwal.tanggal)} | ⏰ ${jadwal.waktu} | 📍 ${escapeHtml(jadwal.tempat)}</div>
-                ${jadwal.deskripsi ? `<div class="list-item-info">${escapeHtml(jadwal.deskripsi)}</div>` : ''}
+                <div class="list-item-title">${escapeHtml(j.judul)}</div>
+                <div class="list-item-info">📅 ${formatDate(j.tanggal)} | ⏰ ${j.waktu} | 📍 ${escapeHtml(j.tempat)}</div>
+                ${j.deskripsi?`<div class="list-item-info">${escapeHtml(j.deskripsi)}</div>`:''}
             </div>
-            <button class="btn-delete-item" onclick="deleteAdminJadwal('${jadwal.id}')">🗑️ Hapus</button>
-        </div>
-    `).join('');
+            <button class="btn-delete-item" onclick="deleteAdminJadwal('${j.id}')">🗑️ Hapus</button>
+        </div>`).join('');
 }
 
 async function deleteAdminJadwal(id) {
-    if (confirm('Yakin ingin menghapus jadwal ini?')) {
-        showLoading();
-        try {
-            await jadwalCollection.doc(id).delete();
-            await loadJadwalFromFirebase();
-            loadAdminJadwalList();
-            alert('✅ Jadwal berhasil dihapus!');
-        } catch (error) {
-            console.error('Error deleting jadwal:', error);
-            alert('❌ Gagal menghapus jadwal.');
-        } finally {
-            hideLoading();
-        }
-    }
+    if (!confirm('Yakin ingin menghapus jadwal ini?')) return;
+    showLoading();
+    try {
+        await jadwalCollection.doc(id).delete();
+        await loadJadwalFromFirebase();
+        loadAdminJadwalList();
+        alert('✅ Jadwal berhasil dihapus!');
+    } catch(e){
+        console.error('Error deleting jadwal:', e);
+        alert('❌ Gagal menghapus jadwal.');
+    } finally { hideLoading(); }
 }
 
-// ===== PWA SERVICE WORKER REGISTRATION =====
+// ===== SERVICE WORKER PWA =====
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('/service-worker.js')
-            .then(registration => {
-                console.log('✅ Service Worker registered:', registration);
-            })
-            .catch(error => {
-                console.log('❌ Service Worker registration failed:', error);
-            });
+            .then(reg => console.log('✅ Service Worker registered:', reg))
+            .catch(err => console.log('❌ Service Worker registration failed:', err));
     });
 }
 
-// Initialize
+// default tab
 document.getElementById('inputTab').style.display = 'block';
