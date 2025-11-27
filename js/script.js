@@ -822,6 +822,11 @@ async function loadAbsensiSessions() {
             // Parsing waktu tutup (endTime) ke menit
             const [endH, endM] = data.endTime.split(':').map(Number);
             const endTimeMinutes = endH * 60 + endM;
+
+             // DEBUG: Print ke console
+            console.log('Sesi:', data.acara);
+            console.log('Tanggal sesi:', data.tanggal, 'vs Today:', today);
+            console.log('Waktu tutup:', endTimeMinutes, 'vs Current:', currentTime);
             
             // Cek: jika tanggal hari ini DAN waktu sekarang masih sebelum/sama dengan waktu tutup = AKTIF
             // ATAU jika tanggal di masa depan = AKTIF
