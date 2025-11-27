@@ -727,15 +727,6 @@ function showAdminFeatures() {
 }
 
 // ===== ADMIN ABSENSI SESSION MANAGEMENT =====
-async function initAbsensiSessionHandlers() {
-    const createForm = document.getElementById('createAbsensiSessionForm');
-    if (createForm) {
-        createForm.addEventListener('submit', handleCreateAbsensiSession);
-    }
-    
-    loadAbsensiSessions();
-}
-
 async function handleCreateAbsensiSession(e) {
     e.preventDefault();
     
@@ -842,6 +833,8 @@ async function loadAbsensiSessions() {
 function renderActiveSessions(sessions) {
     const container = document.getElementById('activeSessionsList');
     
+    if (!container) return;
+    
     if (sessions.length === 0) {
         container.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">Belum ada sesi aktif</p>';
         return;
@@ -881,6 +874,8 @@ function renderActiveSessions(sessions) {
 
 function renderPastSessions(sessions) {
     const container = document.getElementById('pastSessionsList');
+    
+    if (!container) return;
     
     if (sessions.length === 0) {
         container.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">Belum ada riwayat</p>';
@@ -1295,7 +1290,7 @@ function initAdminTabs() {
             } else if (tab === 'manageJadwal') {
                 loadAdminJadwalList();
             } else if (tab === 'manageAbsensi') {
-                initAbsensiSessionHandlers();
+                loadAbsensiSessions();
             }
         });
     });
@@ -1303,6 +1298,12 @@ function initAdminTabs() {
     const jadwalForm = document.getElementById('adminJadwalForm');
     if (jadwalForm) {
         jadwalForm.addEventListener('submit', handleAdminJadwalSubmit);
+    }
+    
+    // PERBAIKAN BUG: Init event listener form absensi saat panel dibuka
+    const createForm = document.getElementById('createAbsensiSessionForm');
+    if (createForm) {
+        createForm.addEventListener('submit', handleCreateAbsensiSession);
     }
 }
 
