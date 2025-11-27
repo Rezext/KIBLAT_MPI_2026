@@ -809,13 +809,23 @@ async function loadAbsensiSessions() {
             .orderBy('createdAt', 'desc')
             .get();
         
-        const today = new Date().toISOString().split('T')[0];
+        const now = new Date();
+        const today = now.toISOString().split('T')[0];
+        const currentTime = now.getHours() * 60 + now.getMinutes(); // waktu dalam menit
+        
         const activeSessions = [];
         const pastSessions = [];
         
         snapshot.forEach(doc => {
             const data = { id: doc.id, ...doc.data() };
-            if (data.tanggal >= today) {
+            
+            // Parsing waktu tutup (endTime) ke menit
+            const [endH, endM] = data.endTime.split(':').map(Number);
+            const endTimeMinutes = endH * 60 + endM;
+            
+            // Cek: jika tanggal hari ini DAN waktu sekarang masih sebelum/sama dengan waktu tutup = AKTIF
+            // ATAU jika tanggal di masa depan = AKTIF
+            if (data.tanggal > today || (data.tanggal === today && currentTime <= endTimeMinutes)) {
                 activeSessions.push(data);
             } else {
                 pastSessions.push(data);
@@ -829,6 +839,7 @@ async function loadAbsensiSessions() {
         console.error('Error loading sessions:', error);
     }
 }
+
 
 function renderActiveSessions(sessions) {
     const container = document.getElementById('activeSessionsList');
