@@ -5,6 +5,8 @@ let todoData = {};
 let currentDivisi = null;
 let jadwalAdmin = [];
 let absensiData = {};
+let filesData = [];
+
 
 // Divisi list dengan emoji dan nama lengkap
 const divisiInfo = {
