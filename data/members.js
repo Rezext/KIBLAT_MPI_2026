@@ -1,7 +1,7 @@
 // Data Members dari Excel
 const MEMBERS_DATA = {
     // Admin NIM list
-    adminNIMs: ['230101050652', '230101050763', '230101050276', '230101050678'],
+    adminNIMs: ['230101050652', '230101050763', '230101050276', '230101050678', 'ruslan'],
     
     // Developer NIM
     developerNIM: '230101050652',
