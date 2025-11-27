@@ -705,10 +705,18 @@ function initHamburgerMenu() {
 
 // ===== ADMIN MODE =====
 function initAdminMode() {
+    console.log('Current User:', currentUser);
+    console.log('Current Role:', currentUserRole);
+    
+    // HANYA admin atau developer yang bisa akses
     if (currentUserRole === 'admin' || currentUserRole === 'developer') {
+        console.log('✅ Admin features enabled');
         showAdminFeatures();
+    } else {
+        console.log('❌ Not admin/developer - Panel Admin hidden');
     }
 }
+
 
 function showAdminFeatures() {
     const sidebarMenu = document.querySelector('.sidebar-menu');
