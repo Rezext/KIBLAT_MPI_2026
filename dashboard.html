@@ -226,6 +226,75 @@
     </div>
 </div>
 
+<!-- Modal Files -->
+<div id="filesModal" class="modal">
+    <div class="modal-content" style="max-width: 900px;">
+        <span class="close">&times;</span>
+        <h2>📥 Download File Penting</h2>
+        
+        <!-- Form Tambah File (Admin/Developer Only) -->
+        <div id="addFileSection" style="display: none;">
+            <div class="add-file-form">
+                <h3>➕ Tambah File Baru</h3>
+                <form id="fileUploadForm">
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label>Nama File <span style="color: red;">*</span></label>
+                            <input type="text" id="fileName" placeholder="Proposal KIBLAT MPI 2026" required>
+                        </div>
+                        <div class="form-field">
+                            <label>Kategori <span style="color: red;">*</span></label>
+                            <select id="fileCategory" required>
+                                <option value="Proposal">📄 Proposal</option>
+                                <option value="Rundown">📋 Rundown</option>
+                                <option value="Anggaran">💰 Anggaran</option>
+                                <option value="Surat">✉️ Surat</option>
+                                <option value="Dokumentasi">📸 Dokumentasi</option>
+                                <option value="Template">📝 Template</option>
+                                <option value="Lainnya">📁 Lainnya</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label>Link Google Drive <span style="color: red;">*</span></label>
+                        <input type="url" id="fileLink" placeholder="https://drive.google.com/file/d/xxxxxxxxx/view" required>
+                        <small style="color: #7f8c8d; font-size: 12px; display: block; margin-top: 5px;">
+                            💡 Tips: Pastikan akses diset ke "Anyone with the link can view"
+                        </small>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label>Icon (Emoji)</label>
+                            <input type="text" id="fileIcon" placeholder="📄" maxlength="2">
+                        </div>
+                        <div class="form-field">
+                            <label>Ukuran File</label>
+                            <input type="text" id="fileSize" placeholder="2.5 MB">
+                        </div>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label>Deskripsi Singkat</label>
+                        <textarea id="fileDesc" rows="2" placeholder="Deskripsi file (opsional)"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn-save">➕ Tambah File</button>
+                </form>
+            </div>
+            <hr style="margin: 30px 0; border: none; border-top: 1px solid #e0e0e0;">
+        </div>
+        
+        <!-- List File -->
+        <div id="filesList"></div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center;">
+
+
 <!-- Loading Overlay -->
 <div id="loadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center;">
     <div style="background: white; padding: 30px; border-radius: 10px; text-align: center;">
