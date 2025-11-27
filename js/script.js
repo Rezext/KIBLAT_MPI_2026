@@ -5,7 +5,6 @@ let todoData = {};
 let currentDivisi = null;
 let jadwalAdmin = [];
 let absensiData = {};
-let filesData = [];
 
 
 // Divisi list dengan emoji dan nama lengkap
@@ -76,7 +75,6 @@ async function loadAllDataFromFirebase() {
         await loadTodosFromFirebase();
         await loadJadwalFromFirebase();
         await loadAbsensiFromFirebase();
-        await loadFilesFromFirebase(); // TAMBAHAN BARU
         console.log('✅ All data loaded from Firebase');
     } catch (error) {
         console.error('❌ Error loading data:', error);
@@ -265,28 +263,6 @@ async function loadAbsensiFromFirebase() {
         console.error('❌ Error loading absensi:', error);
     }
 }
-
-// ===== FIREBASE: FILES =====
-async function loadFilesFromFirebase() {
-    try {
-        const snapshot = await db.collection('files')
-            .orderBy('uploadedAt', 'desc')
-            .get();
-        
-        filesData = [];
-        snapshot.forEach(doc => {
-            filesData.push({
-                id: doc.id,
-                ...doc.data()
-            });
-        });
-        
-        console.log('✅ Files loaded from Firebase');
-    } catch (error) {
-        console.error('❌ Error loading files:', error);
-    }
-}
-
 
 // ===== LOGIN TAB NAVIGATION =====
 function initLoginTabs() {
@@ -575,10 +551,10 @@ function initLogout() {
 }
 
 // ===== SIDEBAR LINKS =====
-document.getElementById('downloadFile').addEventListener('click', function(e) {
-    e.preventDefault();
-    openFilesModal();
-});
+    document.getElementById('downloadFile').addEventListener('click', function(e) {
+        e.preventDefault();
+        openFilesModal();
+    });
 
     
     document.getElementById('contactPerson').addEventListener('click', function(e) {
@@ -1725,125 +1701,6 @@ if ('serviceWorker' in navigator) {
                 console.log('❌ Service Worker registration failed:', error);
             });
     });
-}
-
-// ===== FILES MANAGEMENT =====
-function openFilesModal() {
-    const modal = document.getElementById('filesModal');
-    modal.style.display = 'block';
-    
-    // Show form add file hanya untuk admin/developer
-    const addFileForm = document.getElementById('addFileSection');
-    if (currentUserRole === 'admin' || currentUserRole === 'developer') {
-        addFileForm.style.display = 'block';
-    } else {
-        addFileForm.style.display = 'none';
-    }
-    
-    renderFilesList();
-}
-
-function renderFilesList() {
-    const filesList = document.getElementById('filesList');
-    
-    if (filesData.length === 0) {
-        filesList.innerHTML = '<div class="empty-state"><p>Belum ada file tersedia</p></div>';
-        return;
-    }
-    
-    // Group by category
-    const categories = {};
-    filesData.forEach(file => {
-        const cat = file.kategori || 'Lainnya';
-        if (!categories[cat]) categories[cat] = [];
-        categories[cat].push(file);
-    });
-    
-    filesList.innerHTML = Object.keys(categories).map(category => `
-        <div class="file-category">
-            <h4 class="category-title">${getCategoryIcon(category)} ${category}</h4>
-            <div class="files-grid">
-                ${categories[category].map(file => `
-                    <div class="file-card">
-                        <div class="file-card-icon">${file.icon || '📄'}</div>
-                        <div class="file-card-content">
-                            <div class="file-card-name">${escapeHtml(file.nama)}</div>
-                            ${file.deskripsi ? `<div class="file-card-desc">${escapeHtml(file.deskripsi)}</div>` : ''}
-                            ${file.ukuran ? `<div class="file-card-size">📦 ${file.ukuran}</div>` : ''}
-                        </div>
-                        <div class="file-card-actions">
-                            <a href="${file.link}" target="_blank" class="btn-file-download">
-                                📥 Download
-                            </a>
-                            ${(currentUserRole === 'admin' || currentUserRole === 'developer') ? `
-                                <button onclick="deleteFile('${file.id}')" class="btn-file-delete" title="Hapus">🗑️</button>
-                            ` : ''}
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        </div>
-    `).join('');
-}
-
-function getCategoryIcon(category) {
-    const icons = {
-        'Proposal': '📄',
-        'Rundown': '📋',
-        'Anggaran': '💰',
-        'Surat': '✉️',
-        'Dokumentasi': '📸',
-        'Template': '📝',
-        'Lainnya': '📁'
-    };
-    return icons[category] || '📁';
-}
-
-async function handleAddFile(e) {
-    e.preventDefault();
-    
-    const fileData = {
-        nama: document.getElementById('fileName').value,
-        deskripsi: document.getElementById('fileDesc').value,
-        kategori: document.getElementById('fileCategory').value,
-        link: document.getElementById('fileLink').value,
-        icon: document.getElementById('fileIcon').value || '📄',
-        ukuran: document.getElementById('fileSize').value || '',
-        uploadedBy: currentUser,
-        uploadedAt: firebase.firestore.FieldValue.serverTimestamp()
-    };
-    
-    showLoading();
-    try {
-        await db.collection('files').add(fileData);
-        await loadFilesFromFirebase();
-        renderFilesList();
-        
-        e.target.reset();
-        alert('✅ File berhasil ditambahkan!');
-    } catch (error) {
-        console.error('Error adding file:', error);
-        alert('❌ Gagal menambahkan file.');
-    } finally {
-        hideLoading();
-    }
-}
-
-async function deleteFile(fileId) {
-    if (!confirm('Yakin ingin menghapus file ini?')) return;
-    
-    showLoading();
-    try {
-        await db.collection('files').doc(fileId).delete();
-        await loadFilesFromFirebase();
-        renderFilesList();
-        alert('✅ File berhasil dihapus!');
-    } catch (error) {
-        console.error('Error:', error);
-        alert('❌ Gagal menghapus file.');
-    } finally {
-        hideLoading();
-    }
 }
 
 // Init form submit untuk file upload
