@@ -868,7 +868,7 @@ function renderActiveSessions(sessions) {
                         🔗 Lihat Link
                     </button>
                     <button onclick="viewAbsensiResults('${session.id}')" class="btn-action secondary">
-                        📊 Lihat Hasil (Real-time)
+                        📊 Lihat Hasil
                     </button>
                     <button onclick="closeAbsensiSession('${session.id}')" class="btn-action danger">
                         🔒 Tutup Absensi
@@ -957,91 +957,270 @@ function showAbsensiResultsModal(session, hadir, tidakHadir) {
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.style.display = 'block';
+    modal.id = 'resultsModal';
     modal.innerHTML = `
-        <div class="modal-content" style="max-width: 800px;">
-            <span class="close" onclick="this.closest('.modal').remove()">&times;</span>
+        <div class="modal-content" style="max-width: 900px;">
+            <span class="close" onclick="stopRealtimeMonitoring(); this.closest('.modal').remove()">&times;</span>
             <h2>📊 Hasil Absensi</h2>
             
-            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <h3 style="margin-bottom: 10px;">${escapeHtml(session.acara)}</h3>
-                <p style="color: #666; font-size: 14px;">
-                    📅 ${formatDate(session.tanggal)} | 
-                    ⏰ ${session.startTime} - ${session.endTime} WITA
-                </p>
-            </div>
-            
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px;">
-                <div style="background: #d5f4e6; padding: 15px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 32px; font-weight: 700; color: #27ae60;">${hadir.length}</div>
-                    <div style="color: #27ae60; font-weight: 600;">✅ Hadir</div>
-                </div>
-                <div style="background: #fadbd8; padding: 15px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 32px; font-weight: 700; color: #e74c3c;">${tidakHadir.length}</div>
-                    <div style="color: #e74c3c; font-weight: 600;">❌ Tidak Hadir</div>
+            <div class="session-info-box">
+                <h3>${escapeHtml(session.acara)}</h3>
+                <p>📅 ${formatDate(session.tanggal)} | ⏰ ${session.startTime} - ${session.endTime} WITA</p>
+                <div class="auto-refresh-badge">
+                    🔄 Auto refresh setiap 5 detik
                 </div>
             </div>
             
-            <div style="max-height: 400px; overflow-y: auto;">
-                <h4 style="color: #27ae60; margin-bottom: 10px;">✅ Daftar Hadir (${hadir.length})</h4>
-                <table class="absensi-table" style="margin-bottom: 20px;">
-                    <thead>
-                        <tr>
-                            <th>No</th>
-                            <th>Nama</th>
-                            <th>Waktu Absen</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${hadir.map((h, i) => `
-                            <tr>
-                                <td>${i + 1}</td>
-                                <td>${escapeHtml(h.nama)}</td>
-                                <td>${h.waktu} WITA</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
+            <div class="stats-counter-grid">
+                <div class="counter-card hadir">
+                    <div class="counter-value" id="liveHadirCount">${hadir.length}</div>
+                    <div class="counter-label">✅ Hadir</div>
+                    <div class="counter-percent">${((hadir.length / Object.keys(MEMBERS_DATA.members).length) * 100).toFixed(1)}%</div>
+                </div>
+                <div class="counter-card tidak-hadir">
+                    <div class="counter-value" id="liveTidakHadirCount">${tidakHadir.length}</div>
+                    <div class="counter-label">❌ Tidak Hadir</div>
+                    <div class="counter-percent">${((tidakHadir.length / Object.keys(MEMBERS_DATA.members).length) * 100).toFixed(1)}%</div>
+                </div>
+            </div>
+            
+            <div class="refresh-info-box">
+                <div class="refresh-info-content">
+                    <span class="refresh-label">Last Update:</span>
+                    <span class="refresh-time" id="lastUpdateTime">Baru saja</span>
+                </div>
+                <button onclick="manualRefreshResults()" class="btn-refresh-manual">
+                    🔄 Refresh
+                </button>
+            </div>
+            
+            <div class="absensi-tables-container">
+                <div class="absensi-table-section">
+                    <div class="table-header">
+                        <h4>✅ Daftar Hadir (<span id="hadirCountText">${hadir.length}</span>)</h4>
+                        <button onclick="exportHadirCSV('${escapeHtml(session.acara)}')" class="btn-export">
+                            📥 Export CSV
+                        </button>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="absensi-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px;">No</th>
+                                    <th>Nama</th>
+                                    <th class="hide-mobile" style="width: 130px;">NIM</th>
+                                    <th style="width: 100px;">Waktu</th>
+                                </tr>
+                            </thead>
+                            <tbody id="hadirTableBody">
+                                ${hadir.map((h, i) => `
+                                    <tr>
+                                        <td>${i + 1}</td>
+                                        <td>
+                                            <strong>${escapeHtml(h.nama)}</strong>
+                                            <span class="show-mobile" style="display: none; font-size: 11px; color: #999; margin-top: 3px;">${h.nim}</span>
+                                        </td>
+                                        <td class="hide-mobile"><small>${h.nim}</small></td>
+                                        <td><small>${h.waktu}</small></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
                 
-                <h4 style="color: #e74c3c; margin-bottom: 10px;">❌ Tidak Hadir (${tidakHadir.length})</h4>
-                <table class="absensi-table">
-                    <thead>
-                        <tr>
-                            <th>No</th>
-                            <th>Nama</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${tidakHadir.map((t, i) => `
-                            <tr>
-                                <td>${i + 1}</td>
-                                <td>${escapeHtml(t.nama)}</td>
-                                <td>
-                                    <button onclick="addIzinManual('${escapeHtml(session.acara)}', '${t.nim}', '${escapeHtml(t.nama)}')" 
-                                            style="padding: 5px 10px; background: #f39c12; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer;">
-                                        ➕ Izin
-                                    </button>
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
+                <div class="absensi-table-section">
+                    <div class="table-header">
+                        <h4>❌ Tidak Hadir (<span id="tidakHadirCountText">${tidakHadir.length}</span>)</h4>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="absensi-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px;">No</th>
+                                    <th>Nama</th>
+                                    <th style="width: 110px;">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tidakHadirTableBody">
+                                ${tidakHadir.map((t, i) => `
+                                    <tr id="row-${t.nim}">
+                                        <td>${i + 1}</td>
+                                        <td>
+                                            <strong>${escapeHtml(t.nama)}</strong>
+                                            <div style="font-size: 11px; color: #999; margin-top: 3px;">${t.nim}</div>
+                                        </td>
+                                        <td>
+                                            <button onclick="quickAddIzin('${escapeHtml(session.acara)}', '${t.nim}', '${escapeHtml(t.nama)}')" class="btn-izin">
+                                                ➕ Izin
+                                            </button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
             
-            <button onclick="this.closest('.modal').remove()" style="width: 100%; margin-top: 20px; padding: 12px; background: #95a5a6; color: white; border: none; border-radius: 5px; font-weight: 600; cursor: pointer;">
-                Tutup
+            <button onclick="stopRealtimeMonitoring(); this.closest('.modal').remove()" class="btn-close-modal">
+                ✕ Tutup
             </button>
         </div>
     `;
     document.body.appendChild(modal);
+    
+    startRealtimeMonitoring(session.id);
 }
 
-function addIzinManual(acara, nim, nama) {
-    const keterangan = prompt(`Masukkan keterangan izin untuk ${nama}:`, 'Sakit');
+// Real-time monitoring variables
+let realtimeInterval = null;
+let currentSessionId = null;
+let lastHadirCount = 0;
+
+function startRealtimeMonitoring(sessionId) {
+    currentSessionId = sessionId;
+    lastHadirCount = 0;
+    
+    // Auto refresh every 5 seconds
+    realtimeInterval = setInterval(() => {
+        refreshAbsensiData(sessionId);
+    }, 5000);
+    
+    console.log('🔄 Real-time monitoring started');
+}
+
+function stopRealtimeMonitoring() {
+    if (realtimeInterval) {
+        clearInterval(realtimeInterval);
+        realtimeInterval = null;
+    }
+    currentSessionId = null;
+    lastHadirCount = 0;
+    console.log('⏹️ Real-time monitoring stopped');
+}
+
+async function refreshAbsensiData(sessionId) {
+    try {
+        const attendanceSnapshot = await db.collection('absensi_kehadiran')
+            .where('sessionId', '==', sessionId)
+            .orderBy('timestamp', 'asc')
+            .get();
+        
+        const hadirList = [];
+        attendanceSnapshot.forEach(doc => {
+            hadirList.push(doc.data());
+        });
+        
+        const hadirNIMs = hadirList.map(h => h.nim);
+        const tidakHadirList = [];
+        
+        Object.keys(MEMBERS_DATA.members).forEach(nim => {
+            if (!hadirNIMs.includes(nim)) {
+                tidakHadirList.push({
+                    nim: nim,
+                    nama: MEMBERS_DATA.members[nim].nama
+                });
+            }
+        });
+        
+        lastHadirCount = hadirList.length;
+        
+        updateRealtimeUI(hadirList, tidakHadirList);
+        
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const lastUpdateEl = document.getElementById('lastUpdateTime');
+        if (lastUpdateEl) {
+            lastUpdateEl.textContent = timeStr;
+        }
+        
+    } catch (error) {
+        console.error('Error refreshing data:', error);
+    }
+}
+
+function updateRealtimeUI(hadir, tidakHadir) {
+    const totalMembers = Object.keys(MEMBERS_DATA.members).length;
+    
+    const hadirCountEl = document.getElementById('liveHadirCount');
+    const tidakHadirCountEl = document.getElementById('liveTidakHadirCount');
+    const hadirCountTextEl = document.getElementById('hadirCountText');
+    const tidakHadirCountTextEl = document.getElementById('tidakHadirCountText');
+    
+    if (hadirCountEl) {
+        hadirCountEl.textContent = hadir.length;
+        const percentCard = hadirCountEl.closest('.counter-card');
+        if (percentCard) {
+            const percentEl = percentCard.querySelector('.counter-percent');
+            if (percentEl) {
+                percentEl.textContent = `${((hadir.length / totalMembers) * 100).toFixed(1)}%`;
+            }
+        }
+    }
+    
+    if (tidakHadirCountEl) {
+        tidakHadirCountEl.textContent = tidakHadir.length;
+        const percentCard = tidakHadirCountEl.closest('.counter-card');
+        if (percentCard) {
+            const percentEl = percentCard.querySelector('.counter-percent');
+            if (percentEl) {
+                percentEl.textContent = `${((tidakHadir.length / totalMembers) * 100).toFixed(1)}%`;
+            }
+        }
+    }
+    
+    if (hadirCountTextEl) hadirCountTextEl.textContent = hadir.length;
+    if (tidakHadirCountTextEl) tidakHadirCountTextEl.textContent = tidakHadir.length;
+    
+    const hadirTableBody = document.getElementById('hadirTableBody');
+    if (hadirTableBody) {
+        hadirTableBody.innerHTML = hadir.map((h, i) => `
+            <tr>
+                <td>${i + 1}</td>
+                <td>
+                    <strong>${escapeHtml(h.nama)}</strong>
+                    <span class="show-mobile" style="display: none; font-size: 11px; color: #999; margin-top: 3px;">${h.nim}</span>
+                </td>
+                <td class="hide-mobile"><small>${h.nim}</small></td>
+                <td><small>${h.waktu}</small></td>
+            </tr>
+        `).join('');
+    }
+    
+    const tidakHadirTableBody = document.getElementById('tidakHadirTableBody');
+    if (tidakHadirTableBody) {
+        tidakHadirTableBody.innerHTML = tidakHadir.map((t, i) => `
+            <tr id="row-${t.nim}">
+                <td>${i + 1}</td>
+                <td>
+                    <strong>${escapeHtml(t.nama)}</strong>
+                    <div style="font-size: 11px; color: #999; margin-top: 3px;">${t.nim}</div>
+                </td>
+                <td>
+                    <button onclick="quickAddIzin('${currentSessionId}', '${t.nim}', '${escapeHtml(t.nama)}')" class="btn-izin">
+                        ➕ Izin
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    }
+}
+
+function manualRefreshResults() {
+    if (currentSessionId) {
+        refreshAbsensiData(currentSessionId);
+    }
+}
+
+function quickAddIzin(sessionAcara, nim, nama) {
+    const keterangan = prompt(`Keterangan izin untuk ${nama}:`, 'Sakit');
     
     if (keterangan) {
+        showLoading();
+        
         const data = {
-            acara: acara,
+            acara: sessionAcara,
             tanggal: new Date().toISOString().split('T')[0],
             izin: [{
                 nim: nim,
@@ -1053,15 +1232,72 @@ function addIzinManual(acara, nim, nama) {
         
         db.collection('absensi').add(data)
             .then(() => {
-                alert(`✅ ${nama} berhasil ditandai izin!`);
-                const modal = document.querySelector('.modal');
-                if (modal) modal.remove();
+                hideLoading();
+                
+                const row = document.getElementById(`row-${nim}`);
+                if (row) {
+                    row.remove();
+                }
+                
+                const countEl = document.getElementById('liveTidakHadirCount');
+                if (countEl) {
+                    const newCount = parseInt(countEl.textContent) - 1;
+                    countEl.textContent = newCount;
+                    
+                    const percentCard = countEl.closest('.counter-card');
+                    if (percentCard) {
+                        const percentEl = percentCard.querySelector('.counter-percent');
+                        if (percentEl) {
+                            const totalMembers = Object.keys(MEMBERS_DATA.members).length;
+                            percentEl.textContent = `${((newCount / totalMembers) * 100).toFixed(1)}%`;
+                        }
+                    }
+                }
+                
+                const countTextEl = document.getElementById('tidakHadirCountText');
+                if (countTextEl) {
+                    countTextEl.textContent = parseInt(countTextEl.textContent) - 1;
+                }
+                
+                alert(`✅ ${nama} berhasil ditandai izin: ${keterangan}`);
             })
             .catch(error => {
+                hideLoading();
                 console.error('Error:', error);
                 alert('❌ Gagal menyimpan data izin.');
             });
     }
+}
+
+function exportHadirCSV(acara) {
+    const hadirTableBody = document.getElementById('hadirTableBody');
+    if (!hadirTableBody) return;
+    
+    let csv = 'No,Nama,NIM,Waktu Absen\n';
+    
+    const rows = hadirTableBody.querySelectorAll('tr');
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 3) {
+            const no = cells[0].textContent.trim();
+            const namaCell = cells[1].querySelector('strong');
+            const nama = namaCell ? namaCell.textContent.trim() : '';
+            const nimCell = cells[2].querySelector('small') || cells[1].querySelector('.show-mobile');
+            const nim = nimCell ? nimCell.textContent.trim() : '';
+            const waktuCell = cells[cells.length - 1].querySelector('small');
+            const waktu = waktuCell ? waktuCell.textContent.trim() : '';
+            
+            csv += `${no},"${nama}",${nim},${waktu}\n`;
+        }
+    });
+    
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Absensi_${acara.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
 }
 
 async function closeAbsensiSession(sessionId) {
