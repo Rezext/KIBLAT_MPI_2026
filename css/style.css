@@ -1264,3 +1264,116 @@ body {
         width: 260px;
     }
 }
+
+/* ===== ABSENSI SESSION STYLES ===== */
+.session-item {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    border-left: 5px solid #95a5a6;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.session-item.active {
+    border-left-color: #27ae60;
+}
+
+.session-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.session-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+.session-meta {
+    font-size: 13px;
+    color: #7f8c8d;
+}
+
+.session-badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.session-badge.active {
+    background: #d5f4e6;
+    color: #27ae60;
+}
+
+.session-badge.closed {
+    background: #fadbd8;
+    color: #e74c3c;
+}
+
+.session-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.btn-action {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-action.primary {
+    background: #667eea;
+    color: white;
+}
+
+.btn-action.primary:hover {
+    background: #5568d3;
+}
+
+.btn-action.secondary {
+    background: #3498db;
+    color: white;
+}
+
+.btn-action.secondary:hover {
+    background: #2980b9;
+}
+
+.btn-action.danger {
+    background: #e74c3c;
+    color: white;
+}
+
+.btn-action.danger:hover {
+    background: #c0392b;
+}
+
+@media (max-width: 768px) {
+    .session-header {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .session-badge {
+        align-self: flex-start;
+    }
+    
+    .session-actions {
+        flex-direction: column;
+    }
+    
+    .btn-action {
+        width: 100%;
+    }
+}
