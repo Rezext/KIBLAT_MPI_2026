@@ -709,5 +709,499 @@ if ('serviceWorker' in navigator) {
     });
 }
 
+// ===== ADMIN MODE =====
+function initAdminMode() {
+    if (currentUserRole === 'admin' || currentUserRole === 'developer') {
+        showAdminFeatures();
+    }
+}
+
+function showAdminFeatures() {
+    // Tambah menu admin di sidebar
+    const sidebarMenu = document.querySelector('.sidebar-menu');
+    const adminMenu = document.createElement('li');
+    adminMenu.innerHTML = '<a href="#" id="adminPanel">⚙️ Panel Admin</a>';
+    sidebarMenu.appendChild(adminMenu);
+    
+    document.getElementById('adminPanel').addEventListener('click', function(e) {
+        e.preventDefault();
+        openAdminPanel();
+    });
+}
+
+function openAdminPanel() {
+    const modal = document.createElement('div');
+    modal.id = 'adminPanelModal';
+    modal.className = 'modal';
+    modal.style.display = 'block';
+    
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 1000px;">
+            <span class="close" onclick="closeAdminPanel()">&times;</span>
+            <h2>⚙️ Panel Admin</h2>
+            
+            <div class="admin-tabs">
+                <button class="admin-tab-btn active" data-tab="dashboard">📊 Dashboard</button>
+                <button class="admin-tab-btn" data-tab="allTodos">📋 Semua To-Do</button>
+                <button class="admin-tab-btn" data-tab="manageJadwal">📅 Kelola Jadwal</button>
+                <button class="admin-tab-btn" data-tab="manageAbsensi">📋 Kelola Absensi</button>
+            </div>
+
+            <!-- DASHBOARD TAB -->
+            <div id="adminDashboard" class="admin-section active">
+                <h3>Dashboard Statistik</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">📋</div>
+                        <div class="stat-value" id="totalTodos">0</div>
+                        <div class="stat-label">Total To-Do</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⚠️</div>
+                        <div class="stat-value" id="urgentTodos">0</div>
+                        <div class="stat-label">Penting & Mendesak</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-value" id="completedTodos">0</div>
+                        <div class="stat-label">Selesai</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-value">${Object.keys(MEMBERS_DATA.members).length}</div>
+                        <div class="stat-label">Total Anggota</div>
+                    </div>
+                </div>
+                
+                <h4 style="margin-top: 30px;">Statistik Per Divisi</h4>
+                <div id="divisiStats"></div>
+            </div>
+
+            <!-- ALL TODOS TAB -->
+            <div id="adminAllTodos" class="admin-section">
+                <h3>Semua To-Do List</h3>
+                <div class="filter-section">
+                    <select id="filterDivisi" class="filter-select">
+                        <option value="all">Semua Divisi</option>
+                    </select>
+                    <select id="filterStatus" class="filter-select">
+                        <option value="all">Semua Status</option>
+                        <option value="active">Belum Selesai</option>
+                        <option value="completed">Selesai</option>
+                    </select>
+                    <button onclick="filterAdminTodos()" class="btn-filter">🔍 Filter</button>
+                </div>
+                <div id="adminTodosList"></div>
+            </div>
+
+            <!-- JADWAL TAB -->
+            <div id="adminManageJadwal" class="admin-section">
+                <h3>Kelola Jadwal Admin</h3>
+                <form id="adminJadwalForm" class="admin-form">
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label>Judul Acara</label>
+                            <input type="text" id="jadwalJudul" required>
+                        </div>
+                        <div class="form-field">
+                            <label>Tanggal</label>
+                            <input type="date" id="jadwalTanggal" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label>Waktu (WITA)</label>
+                            <input type="time" id="jadwalWaktu" required>
+                        </div>
+                        <div class="form-field">
+                            <label>Tempat</label>
+                            <input type="text" id="jadwalTempat" required>
+                        </div>
+                    </div>
+                    <div class="form-field">
+                        <label>Deskripsi</label>
+                        <textarea id="jadwalDeskripsi" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn-save">➕ Tambah Jadwal</button>
+                </form>
+                
+                <hr style="margin: 30px 0;">
+                <h4>List Jadwal</h4>
+                <div id="adminJadwalList"></div>
+            </div>
+
+            <!-- ABSENSI TAB -->
+            <div id="adminManageAbsensi" class="admin-section">
+                <h3>Kelola Data Absensi</h3>
+                <form id="adminAbsensiForm" class="admin-form">
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label>Nama Acara</label>
+                            <input type="text" id="absensiAcara" required>
+                        </div>
+                        <div class="form-field">
+                            <label>Tanggal</label>
+                            <input type="date" id="absensiTanggal" required>
+                        </div>
+                    </div>
+                    
+                    <h4>Data Kehadiran</h4>
+                    <div class="form-field">
+                        <label>NIM Hadir (pisahkan dengan koma)</label>
+                        <textarea id="absensiHadir" rows="3" placeholder="230101050652, 230101050763, ..."></textarea>
+                        <small>Format: NIM, NIM, NIM (akan auto-match dengan nama)</small>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label>NIM Izin (format: NIM|keterangan, pisahkan dengan koma)</label>
+                        <textarea id="absensiIzin" rows="2" placeholder="230101050276|Sakit, 230101050650|Acara Keluarga"></textarea>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label>NIM Alpha (pisahkan dengan koma)</label>
+                        <textarea id="absensiAlpha" rows="2" placeholder="230101050654, 230101050669, ..."></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn-save">💾 Simpan Data Absensi</button>
+                </form>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    initAdminTabs();
+    loadAdminDashboard();
+    populateFilterDivisi();
+}
+
+function closeAdminPanel() {
+    const modal = document.getElementById('adminPanelModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+// ===== ADMIN TABS =====
+function initAdminTabs() {
+    document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const tab = this.dataset.tab;
+            
+            document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            document.querySelectorAll('.admin-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            const targetSection = document.getElementById(`admin${capitalize(tab)}`);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+            
+            // Load data per tab
+            if (tab === 'dashboard') {
+                loadAdminDashboard();
+            } else if (tab === 'allTodos') {
+                loadAdminAllTodos();
+            } else if (tab === 'manageJadwal') {
+                loadAdminJadwalList();
+            }
+        });
+    });
+    
+    // Form handlers
+    const jadwalForm = document.getElementById('adminJadwalForm');
+    if (jadwalForm) {
+        jadwalForm.addEventListener('submit', handleAdminJadwalSubmit);
+    }
+    
+    const absensiForm = document.getElementById('adminAbsensiForm');
+    if (absensiForm) {
+        absensiForm.addEventListener('submit', handleAdminAbsensiSubmit);
+    }
+}
+
+// ===== ADMIN DASHBOARD =====
+async function loadAdminDashboard() {
+    let totalTodos = 0;
+    let urgentTodos = 0;
+    let completedTodos = 0;
+    
+    const divisiStatsData = {};
+    
+    Object.keys(divisiInfo).forEach(divisi => {
+        const todos = todoData[divisi] || [];
+        totalTodos += todos.length;
+        urgentTodos += todos.filter(t => t.prioritas === 'urgent' && !t.completed).length;
+        completedTodos += todos.filter(t => t.completed).length;
+        
+        divisiStatsData[divisi] = {
+            total: todos.length,
+            completed: todos.filter(t => t.completed).length,
+            urgent: todos.filter(t => t.prioritas === 'urgent' && !t.completed).length
+        };
+    });
+    
+    document.getElementById('totalTodos').textContent = totalTodos;
+    document.getElementById('urgentTodos').textContent = urgentTodos;
+    document.getElementById('completedTodos').textContent = completedTodos;
+    
+    // Divisi stats
+    const divisiStatsEl = document.getElementById('divisiStats');
+    divisiStatsEl.innerHTML = Object.keys(divisiInfo).map(divisi => {
+        const info = divisiInfo[divisi];
+        const stats = divisiStatsData[divisi];
+        const progress = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
+        
+        return `
+            <div class="divisi-stat-item">
+                <div class="divisi-stat-header">
+                    <span class="divisi-stat-name">${info.emoji} ${info.nama}</span>
+                    <span class="divisi-stat-progress">${progress}%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${progress}%"></div>
+                </div>
+                <div class="divisi-stat-details">
+                    Total: ${stats.total} | Selesai: ${stats.completed} | Penting: ${stats.urgent}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// ===== ADMIN ALL TODOS =====
+function populateFilterDivisi() {
+    const select = document.getElementById('filterDivisi');
+    if (select) {
+        Object.keys(divisiInfo).forEach(divisi => {
+            const option = document.createElement('option');
+            option.value = divisi;
+            option.textContent = `${divisiInfo[divisi].emoji} ${divisiInfo[divisi].nama}`;
+            select.appendChild(option);
+        });
+    }
+}
+
+function filterAdminTodos() {
+    loadAdminAllTodos();
+}
+
+function loadAdminAllTodos() {
+    const filterDivisi = document.getElementById('filterDivisi').value;
+    const filterStatus = document.getElementById('filterStatus').value;
+    
+    let allTodos = [];
+    
+    if (filterDivisi === 'all') {
+        Object.keys(divisiInfo).forEach(divisi => {
+            (todoData[divisi] || []).forEach(todo => {
+                allTodos.push({ ...todo, divisi });
+            });
+        });
+    } else {
+        (todoData[filterDivisi] || []).forEach(todo => {
+            allTodos.push({ ...todo, divisi: filterDivisi });
+        });
+    }
+    
+    if (filterStatus === 'active') {
+        allTodos = allTodos.filter(t => !t.completed);
+    } else if (filterStatus === 'completed') {
+        allTodos = allTodos.filter(t => t.completed);
+    }
+    
+    // Sort by date
+    allTodos.sort((a, b) => new Date(a.tanggal) - new Date(b.tanggal));
+    
+    const listEl = document.getElementById('adminTodosList');
+    if (allTodos.length === 0) {
+        listEl.innerHTML = '<div class="empty-state"><p>Tidak ada to-do</p></div>';
+        return;
+    }
+    
+    listEl.innerHTML = allTodos.map(todo => `
+        <div class="admin-todo-item ${todo.completed ? 'completed' : ''}">
+            <div class="admin-todo-badge ${todo.prioritas}">${getPriorityLabel(todo.prioritas)}</div>
+            <div class="admin-todo-divisi">${divisiInfo[todo.divisi].emoji} ${divisiInfo[todo.divisi].nama}</div>
+            <div class="admin-todo-title">${escapeHtml(todo.nama)}</div>
+            <div class="admin-todo-meta">
+                📅 ${formatDate(todo.tanggal)} | ⏰ ${todo.waktu} WITA
+                ${todo.deskripsi ? `<br>📝 ${escapeHtml(todo.deskripsi)}` : ''}
+            </div>
+            <div class="admin-todo-actions">
+                ${!todo.completed ? `
+                    <button class="btn-check" onclick="adminToggleTodo('${todo.id}', '${todo.divisi}', true)">✓ Tandai Selesai</button>
+                ` : `
+                    <button class="btn-uncheck" onclick="adminToggleTodo('${todo.id}', '${todo.divisi}', false)">↻ Batal Selesai</button>
+                `}
+                <button class="btn-delete" onclick="adminDeleteTodo('${todo.id}', '${todo.divisi}')">🗑️ Hapus</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function getPriorityLabel(priority) {
+    const labels = {
+        'urgent': '⚠️ Penting',
+        'medium': '📌 Sedang',
+        'low': '✓ Tidak'
+    };
+    return labels[priority] || priority;
+}
+
+async function adminToggleTodo(id, divisi, status) {
+    await toggleComplete(id, divisi, status);
+    loadAdminAllTodos();
+    loadAdminDashboard();
+}
+
+async function adminDeleteTodo(id, divisi) {
+    if (confirm('Yakin ingin menghapus to-do ini?')) {
+        await deleteTodoFromFirebase(id);
+        todoData[divisi] = todoData[divisi].filter(todo => todo.id !== id);
+        loadAdminAllTodos();
+        loadAdminDashboard();
+    }
+}
+
+// ===== ADMIN JADWAL =====
+async function handleAdminJadwalSubmit(e) {
+    e.preventDefault();
+    
+    const jadwal = {
+        judul: document.getElementById('jadwalJudul').value,
+        tanggal: document.getElementById('jadwalTanggal').value,
+        waktu: document.getElementById('jadwalWaktu').value,
+        tempat: document.getElementById('jadwalTempat').value,
+        deskripsi: document.getElementById('jadwalDeskripsi').value
+    };
+    
+    showLoading();
+    try {
+        await jadwalCollection.add({
+            ...jadwal,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        await loadJadwalFromFirebase();
+        loadAdminJadwalList();
+        
+        e.target.reset();
+        alert('✅ Jadwal berhasil ditambahkan!');
+    } catch (error) {
+        console.error('Error adding jadwal:', error);
+        alert('❌ Gagal menambahkan jadwal.');
+    } finally {
+        hideLoading();
+    }
+}
+
+async function loadAdminJadwalList() {
+    const listEl = document.getElementById('adminJadwalList');
+    
+    if (jadwalAdmin.length === 0) {
+        listEl.innerHTML = '<p style="text-align: center; color: #999;">Belum ada jadwal</p>';
+        return;
+    }
+    
+    listEl.innerHTML = jadwalAdmin.map(jadwal => `
+        <div class="list-item">
+            <div class="list-item-content">
+                <div class="list-item-title">${escapeHtml(jadwal.judul)}</div>
+                <div class="list-item-info">📅 ${formatDate(jadwal.tanggal)} | ⏰ ${jadwal.waktu} | 📍 ${escapeHtml(jadwal.tempat)}</div>
+                ${jadwal.deskripsi ? `<div class="list-item-info">${escapeHtml(jadwal.deskripsi)}</div>` : ''}
+            </div>
+            <button class="btn-delete-item" onclick="deleteAdminJadwal('${jadwal.id}')">🗑️ Hapus</button>
+        </div>
+    `).join('');
+}
+
+async function deleteAdminJadwal(id) {
+    if (confirm('Yakin ingin menghapus jadwal ini?')) {
+        showLoading();
+        try {
+            await jadwalCollection.doc(id).delete();
+            await loadJadwalFromFirebase();
+            loadAdminJadwalList();
+            alert('✅ Jadwal berhasil dihapus!');
+        } catch (error) {
+            console.error('Error deleting jadwal:', error);
+            alert('❌ Gagal menghapus jadwal.');
+        } finally {
+            hideLoading();
+        }
+    }
+}
+
+// ===== ADMIN ABSENSI =====
+async function handleAdminAbsensiSubmit(e) {
+    e.preventDefault();
+    
+    const acara = document.getElementById('absensiAcara').value;
+    const tanggal = document.getElementById('absensiTanggal').value;
+    
+    // Parse NIM lists
+    const hadirNIMs = document.getElementById('absensiHadir').value
+        .split(',').map(nim => nim.trim()).filter(nim => nim);
+    
+    const izinData = document.getElementById('absensiIzin').value
+        .split(',').map(item => {
+            const parts = item.split('|');
+            return { nim: parts[0]?.trim(), keterangan: parts[1]?.trim() || 'Izin' };
+        }).filter(item => item.nim);
+    
+    const alphaNIMs = document.getElementById('absensiAlpha').value
+        .split(',').map(nim => nim.trim()).filter(nim => nim);
+    
+    // Build data with names
+    const hadir = hadirNIMs.map(nim => ({
+        nim,
+        nama: MEMBERS_DATA.members[nim]?.nama || 'Unknown',
+        waktu: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+    }));
+    
+    const izin = izinData.map(item => ({
+        nim: item.nim,
+        nama: MEMBERS_DATA.members[item.nim]?.nama || 'Unknown',
+        keterangan: item.keterangan
+    }));
+    
+    const alpha = alphaNIMs.map(nim => ({
+        nim,
+        nama: MEMBERS_DATA.members[nim]?.nama || 'Unknown'
+    }));
+    
+    showLoading();
+    try {
+        await absensiCollection.add({
+            acara,
+            tanggal,
+            hadir,
+            izin,
+            alpha,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        await loadAbsensiFromFirebase();
+        
+        e.target.reset();
+        alert('✅ Data absensi berhasil disimpan!');
+    } catch (error) {
+        console.error('Error saving absensi:', error);
+        alert('❌ Gagal menyimpan data absensi.');
+    } finally {
+        hideLoading();
+    }
+}
+
+// Update loginSuccess untuk init admin mode
+const originalLoginSuccess = loginSuccess;
+loginSuccess = function() {
+    originalLoginSuccess();
+    initAdminMode();
+};
+
 // Initialize
 document.getElementById('inputTab').style.display = 'block';
