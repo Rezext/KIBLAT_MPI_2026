@@ -187,17 +187,69 @@ async function loadJadwalFromFirebase() {
 // ===== FIREBASE: ABSENSI =====
 async function loadAbsensiFromFirebase() {
     try {
-        const snapshot = await absensiCollection.orderBy('tanggal', 'desc').limit(1).get();
+        // Ambil sesi terakhir yang sudah ditutup
+        const now = new Date();
+        const today = now.getFullYear() + '-' + 
+                      String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                      String(now.getDate()).padStart(2, '0');
+        const currentTime = now.getHours() * 60 + now.getMinutes();
         
-        if (!snapshot.empty) {
-            const doc = snapshot.docs[0];
+        const snapshot = await db.collection('absensi_sessions')
+            .orderBy('tanggal', 'desc')
+            .orderBy('createdAt', 'desc')
+            .limit(10)
+            .get();
+        
+        let latestPastSession = null;
+        
+        snapshot.forEach(doc => {
+            const data = { id: doc.id, ...doc.data() };
+            const [endH, endM] = data.endTime.split(':').map(Number);
+            const endTimeMinutes = endH * 60 + endM;
+            
+            // Cari sesi yang sudah lewat (riwayat)
+            if (data.tanggal < today || (data.tanggal === today && currentTime > endTimeMinutes)) {
+                if (!latestPastSession) {
+                    latestPastSession = data;
+                }
+            }
+        });
+        
+        if (latestPastSession) {
+            // Load data kehadiran dari sesi terakhir
+            const attendanceSnapshot = await db.collection('absensi_kehadiran')
+                .where('sessionId', '==', latestPastSession.id)
+                .orderBy('timestamp', 'asc')
+                .get();
+            
+            const hadirList = [];
+            attendanceSnapshot.forEach(doc => {
+                hadirList.push(doc.data());
+            });
+            
+            const hadirNIMs = hadirList.map(h => h.nim);
+            const alphaList = [];
+            
+            Object.keys(MEMBERS_DATA.members).forEach(nim => {
+                if (!hadirNIMs.includes(nim)) {
+                    alphaList.push({
+                        nim: nim,
+                        nama: MEMBERS_DATA.members[nim].nama
+                    });
+                }
+            });
+            
             absensiData = {
-                id: doc.id,
-                ...doc.data()
+                id: latestPastSession.id,
+                acara: latestPastSession.acara,
+                tanggal: latestPastSession.tanggal,
+                hadir: hadirList,
+                izin: [], // Bisa ditambahkan nanti
+                alpha: alphaList
             };
         } else {
             absensiData = {
-                tanggal: '2025-11-24',
+                tanggal: today,
                 acara: 'Belum ada data absensi',
                 hadir: [],
                 izin: [],
@@ -210,6 +262,7 @@ async function loadAbsensiFromFirebase() {
         console.error('❌ Error loading absensi:', error);
     }
 }
+
 
 // ===== LOGIN TAB NAVIGATION =====
 function initLoginTabs() {
