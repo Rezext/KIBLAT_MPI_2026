@@ -265,6 +265,27 @@ async function loadAbsensiFromFirebase() {
     }
 }
 
+// ===== FIREBASE: FILES =====
+async function loadFilesFromFirebase() {
+    try {
+        const snapshot = await db.collection('files')
+            .orderBy('uploadedAt', 'desc')
+            .get();
+        
+        filesData = [];
+        snapshot.forEach(doc => {
+            filesData.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+        
+        console.log('✅ Files loaded from Firebase');
+    } catch (error) {
+        console.error('❌ Error loading files:', error);
+    }
+}
+
 
 // ===== LOGIN TAB NAVIGATION =====
 function initLoginTabs() {
