@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Absensi KIBLAT MPI 2026</title>
+    
+    <meta name="theme-color" content="#667eea">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .logo {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .status-box {
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+        
+        .status-box.loading {
+            background: #ecf0f1;
+            color: #7f8c8d;
+        }
+        
+        .status-box.success {
+            background: #d5f4e6;
+            color: #27ae60;
+        }
+        
+        .status-box.error {
+            background: #fadbd8;
+            color: #e74c3c;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 18px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-submit {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-submit:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .info-box {
+            background: #e8f4fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 13px;
+            color: #2c3e50;
+        }
+        
+        .success-animation {
+            font-size: 80px;
+            animation: bounce 0.6s ease;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="logo">📋</div>
+    <h1>Absensi KIBLAT</h1>
+    <p class="subtitle" id="sessionTitle">Loading...</p>
+    
+    <div id="statusBox" class="status-box loading">
+        <div class="loading-spinner"></div>
+        <div>Memvalidasi akses...</div>
+    </div>
+    
+    <form id="absensiForm" style="display: none;">
+        <div class="form-group">
+            <label for="nimInput">Masukkan NIM Anda</label>
+            <input type="text" id="nimInput" placeholder="Contoh: 230101050652" maxlength="12" required autofocus>
+        </div>
+        
+        <button type="submit" class="btn-submit" id="submitBtn">✅ Absen Sekarang</button>
+        
+        <div class="info-box">
+            ⏰ Waktu: <strong id="currentTime">-</strong><br>
+            📍 Lokasi: <strong id="currentLocation">Mendeteksi...</strong>
+        </div>
+    </form>
+    
+    <div id="successBox" style="display: none;">
+        <div class="success-animation">✅</div>
+        <h2 style="color: #27ae60; margin: 20px 0;">Berhasil!</h2>
+        <p style="font-size: 18px; color: #2c3e50; margin-bottom: 10px;">Selamat datang,</p>
+        <p style="font-size: 24px; font-weight: 700; color: #667eea;" id="successName">-</p>
+        <p style="color: #7f8c8d; margin-top: 20px; font-size: 14px;">Kehadiran Anda telah tercatat ✓</p>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="data/members.js"></script>
+<script src="js/firebase-config.js"></script>
+
+<script>
+// Get session ID from URL parameter
+const urlParams = new URLSearchParams(window.location.search);
+const sessionId = urlParams.get('id');
+
+// UIN Antasari Banjarmasin Kampus 1 Coordinates
+const UIN_LATITUDE = -3.327028;
+const UIN_LONGITUDE = 114.588242;
+const RADIUS_METERS = 500; // 500 meter radius
+
+let currentSession = null;
+let userLocation = null;
+
+// Init
+document.addEventListener('DOMContentLoaded', function() {
+    if (!sessionId) {
+        showError('Link absensi tidak valid. Hubungi admin.');
+        return;
+    }
+    
+    updateClock();
+    setInterval(updateClock, 1000);
+    
+    validateAccess();
+    
+    document.getElementById('absensiForm').addEventListener('submit', handleSubmit);
+});
+
+async function validateAccess() {
+    try {
+        // 1. Get session data
+        const sessionDoc = await db.collection('absensi_sessions').doc(sessionId).get();
+        
+        if (!sessionDoc.exists) {
+            showError('Sesi absensi tidak ditemukan.');
+            return;
+        }
+        
+        currentSession = { id: sessionDoc.id, ...sessionDoc.data() };
+        document.getElementById('sessionTitle').textContent = currentSession.acara;
+        
+        // 2. Check time
+        const now = new Date();
+        const currentTime = now.getHours() * 60 + now.getMinutes(); // in minutes
+        const [startH, startM] = currentSession.startTime.split(':').map(Number);
+        const [endH, endM] = currentSession.endTime.split(':').map(Number);
+        const startMinutes = startH * 60 + startM;
+        const endMinutes = endH * 60 + endM;
+        
+        if (currentTime < startMinutes) {
+            showError(`Absensi belum dibuka. Mulai jam ${currentSession.startTime} WITA`);
+            return;
+        }
+        
+        if (currentTime > endMinutes) {
+            showError(`Absensi sudah ditutup. Berakhir jam ${currentSession.endTime} WITA`);
+            return;
+        }
+        
+        // 3. Check location
+        await validateLocation();
+        
+    } catch (error) {
+        console.error('Error validating access:', error);
+        showError('Gagal memvalidasi akses. Cek koneksi internet.');
+    }
+}
+
+async function validateLocation() {
+    if (!navigator.geolocation) {
+        showError('Browser tidak mendukung GPS. Gunakan Chrome/Safari terbaru.');
+        return;
+    }
+    
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            userLocation = {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude
+            };
+            
+            const distance = calculateDistance(
+                userLocation.latitude,
+                userLocation.longitude,
+                UIN_LATITUDE,
+                UIN_LONGITUDE
+            );
+            
+            document.getElementById('currentLocation').textContent = `${Math.round(distance)}m dari kampus`;
+            
+            if (distance > RADIUS_METERS) {
+                showError(`Anda terlalu jauh dari kampus (${Math.round(distance)}m). Maksimal ${RADIUS_METERS}m.`);
+                return;
+            }
+            
+            // All validations passed
+            showForm();
+        },
+        (error) => {
+            console.error('Geolocation error:', error);
+            showError('Gagal mendeteksi lokasi. Aktifkan GPS dan izinkan akses lokasi.');
+        },
+        {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+        }
+    );
+}
+
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371e3; // Earth radius in meters
+    const φ1 = lat1 * Math.PI / 180;
+    const φ2 = lat2 * Math.PI / 180;
+    const Δφ = (lat2 - lat1) * Math.PI / 180;
+    const Δλ = (lon2 - lon1) * Math.PI / 180;
+    
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    
+    return R * c; // Distance in meters
+}
+
+function showForm() {
+    document.getElementById('statusBox').style.display = 'none';
+    document.getElementById('absensiForm').style.display = 'block';
+    document.getElementById('nimInput').focus();
+}
+
+function showError(message) {
+    const statusBox = document.getElementById('statusBox');
+    statusBox.className = 'status-box error';
+    statusBox.innerHTML = `
+        <div style="font-size: 50px; margin-bottom: 15px;">❌</div>
+        <div>${message}</div>
+    `;
+}
+
+async function handleSubmit(e) {
+    e.preventDefault();
+    
+    const nim = document.getElementById('nimInput').value.trim();
+    const submitBtn = document.getElementById('submitBtn');
+    
+    // Validate NIM
+    if (!MEMBERS_DATA.members[nim]) {
+        alert('❌ NIM tidak terdaftar. Periksa kembali NIM Anda.');
+        return;
+    }
+    
+    const memberData = MEMBERS_DATA.members[nim];
+    
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Menyimpan...';
+    
+    try {
+        // Check if already absent
+        const existingDoc = await db.collection('absensi_kehadiran')
+            .where('sessionId', '==', sessionId)
+            .where('nim', '==', nim)
+            .get();
+        
+        if (!existingDoc.empty) {
+            alert('⚠️ Anda sudah melakukan absensi untuk sesi ini.');
+            submitBtn.disabled = false;
+            submitBtn.textContent = '✅ Absen Sekarang';
+            return;
+        }
+        
+        // Save attendance
+        await db.collection('absensi_kehadiran').add({
+            sessionId: sessionId,
+            nim: nim,
+            nama: memberData.nama,
+            waktu: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            location: userLocation
+        });
+        
+        // Show success
+        document.getElementById('absensiForm').style.display = 'none';
+        document.getElementById('successBox').style.display = 'block';
+        document.getElementById('successName').textContent = memberData.nama;
+        
+    } catch (error) {
+        console.error('Error saving attendance:', error);
+        alert('❌ Gagal menyimpan absensi. Coba lagi.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = '✅ Absen Sekarang';
+    }
+}
+
+function updateClock() {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('id-ID', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        second: '2-digit'
+    });
+    const clockEl = document.getElementById('currentTime');
+    if (clockEl) {
+        clockEl.textContent = timeStr + ' WITA';
+    }
+}
+</script>
+
+</body>
+</html>
