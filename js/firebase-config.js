@@ -19,5 +19,6 @@ const db = firebase.firestore();
 const todoCollection = db.collection('todos');
 const jadwalCollection = db.collection('jadwal');
 const absensiCollection = db.collection('absensi');
+const absensiSessionsCollection = db.collection('absensi_sessions');
 
 console.log('🔥 Firebase initialized successfully!');
