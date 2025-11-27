@@ -810,7 +810,10 @@ async function loadAbsensiSessions() {
             .get();
         
         const now = new Date();
-        const today = now.toISOString().split('T')[0];
+        // FIX: Gunakan tanggal lokal (WITA), bukan UTC
+        const today = now.getFullYear() + '-' + 
+                      String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                      String(now.getDate()).padStart(2, '0');
         const currentTime = now.getHours() * 60 + now.getMinutes(); // waktu dalam menit
         
         const activeSessions = [];
@@ -822,8 +825,8 @@ async function loadAbsensiSessions() {
             // Parsing waktu tutup (endTime) ke menit
             const [endH, endM] = data.endTime.split(':').map(Number);
             const endTimeMinutes = endH * 60 + endM;
-
-             // DEBUG: Print ke console
+            
+            // DEBUG: Print ke console (bisa dihapus nanti)
             console.log('Sesi:', data.acara);
             console.log('Tanggal sesi:', data.tanggal, 'vs Today:', today);
             console.log('Waktu tutup:', endTimeMinutes, 'vs Current:', currentTime);
@@ -844,6 +847,7 @@ async function loadAbsensiSessions() {
         console.error('Error loading sessions:', error);
     }
 }
+
 
 
 function renderActiveSessions(sessions) {
