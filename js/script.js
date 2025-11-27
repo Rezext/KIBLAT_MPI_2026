@@ -892,6 +892,104 @@ function renderActiveSessions(sessions) {
     }).join('');
 }
 
+// ===== DOWNLOAD EXCEL FUNCTIONS =====
+function downloadAbsensiExcel(sessionId, sessionName, sessionDate) {
+    showLoading();
+    
+    db.collection('absensi_sessions').doc(sessionId).get()
+        .then(sessionDoc => {
+            const sessionData = sessionDoc.data();
+            
+            return db.collection('absensi_kehadiran')
+                .where('sessionId', '==', sessionId)
+                .orderBy('timestamp', 'asc')
+                .get()
+                .then(attendanceSnapshot => {
+                    const hadirList = [];
+                    attendanceSnapshot.forEach(doc => {
+                        hadirList.push(doc.data());
+                    });
+                    
+                    const hadirNIMs = hadirList.map(h => h.nim);
+                    const tidakHadirList = [];
+                    
+                    Object.keys(MEMBERS_DATA.members).forEach(nim => {
+                        if (!hadirNIMs.includes(nim)) {
+                            const member = MEMBERS_DATA.members[nim];
+                            tidakHadirList.push({
+                                nim: nim,
+                                nama: member.nama,
+                                divisi: member.divisi.join(', ')
+                            });
+                        }
+                    });
+                    
+                    generateExcelFile(sessionName, sessionDate, sessionData, hadirList, tidakHadirList);
+                });
+        })
+        .catch(error => {
+            console.error('Error loading data:', error);
+            alert('❌ Gagal mengunduh data absensi.');
+        })
+        .finally(() => {
+            hideLoading();
+        });
+}
+
+function generateExcelFile(sessionName, sessionDate, sessionData, hadirList, tidakHadirList) {
+    // Header CSV
+    let csvContent = '\uFEFF'; // UTF-8 BOM untuk Excel
+    
+    // Info Sesi
+    csvContent += `Laporan Absensi\n`;
+    csvContent += `Acara:,${sessionName}\n`;
+    csvContent += `Tanggal:,${sessionDate}\n`;
+    csvContent += `Waktu:,${sessionData.startTime} - ${sessionData.endTime} WITA\n`;
+    csvContent += `\n`;
+    
+    // Ringkasan
+    csvContent += `Ringkasan\n`;
+    csvContent += `Total Panitia:,${Object.keys(MEMBERS_DATA.members).length}\n`;
+    csvContent += `Hadir:,${hadirList.length}\n`;
+    csvContent += `Tidak Hadir:,${tidakHadirList.length}\n`;
+    csvContent += `Persentase Kehadiran:,${Math.round((hadirList.length / Object.keys(MEMBERS_DATA.members).length) * 100)}%\n`;
+    csvContent += `\n`;
+    
+    // Daftar Hadir
+    csvContent += `DAFTAR HADIR\n`;
+    csvContent += `No,NIM,Nama,Divisi,Waktu Absen\n`;
+    hadirList.forEach((h, i) => {
+        const member = MEMBERS_DATA.members[h.nim];
+        const divisi = member ? member.divisi.join(', ') : '-';
+        csvContent += `${i + 1},${h.nim},"${h.nama}","${divisi}",${h.waktu} WITA\n`;
+    });
+    
+    csvContent += `\n`;
+    
+    // Daftar Tidak Hadir
+    csvContent += `DAFTAR TIDAK HADIR\n`;
+    csvContent += `No,NIM,Nama,Divisi\n`;
+    tidakHadirList.forEach((t, i) => {
+        csvContent += `${i + 1},${t.nim},"${t.nama}","${t.divisi}"\n`;
+    });
+    
+    // Download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    const fileName = `Absensi_${sessionName.replace(/\s+/g, '_')}_${sessionDate}.csv`;
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', fileName);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    alert(`✅ File "${fileName}" berhasil diunduh!`);
+}
+
 function renderPastSessions(sessions) {
     const container = document.getElementById('pastSessionsList');
     
@@ -918,6 +1016,9 @@ function renderPastSessions(sessions) {
                 <button onclick="viewAbsensiResults('${session.id}')" class="btn-action secondary">
                     📊 Lihat Hasil Akhir
                 </button>
+                <button onclick="downloadAbsensiExcel('${session.id}', '${escapeHtml(session.acara)}', '${session.tanggal}')" class="btn-action success">
+                    📥 Download Excel
+                </button>
                 <button onclick="deleteAbsensiSession('${session.id}')" class="btn-action danger">
                     🗑️ Hapus
                 </button>
@@ -925,6 +1026,7 @@ function renderPastSessions(sessions) {
         </div>
     `).join('');
 }
+
 
 function viewAbsensiLink(link, acara) {
     showAbsensiLinkModal(link, acara);
