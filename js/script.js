@@ -705,20 +705,16 @@ function initHamburgerMenu() {
 
 // ===== ADMIN MODE =====
 function initAdminMode() {
-    console.log('Current User:', currentUser);
-    console.log('Current Role:', currentUserRole);
-    
-    // HANYA admin atau developer yang bisa akses
     if (currentUserRole === 'admin' || currentUserRole === 'developer') {
-        console.log('✅ Admin features enabled');
         showAdminFeatures();
-    } else {
-        console.log('❌ Not admin/developer - Panel Admin hidden');
     }
 }
 
-
 function showAdminFeatures() {
+    if (document.getElementById('adminPanel')) {
+        return;
+    }
+    
     const sidebarMenu = document.querySelector('.sidebar-menu');
     const adminMenu = document.createElement('li');
     adminMenu.innerHTML = '<a href="#" id="adminPanel">⚙️ Panel Admin</a>';
@@ -728,6 +724,397 @@ function showAdminFeatures() {
         e.preventDefault();
         openAdminPanel();
     });
+}
+
+// ===== ADMIN ABSENSI SESSION MANAGEMENT =====
+async function initAbsensiSessionHandlers() {
+    const createForm = document.getElementById('createAbsensiSessionForm');
+    if (createForm) {
+        createForm.addEventListener('submit', handleCreateAbsensiSession);
+    }
+    
+    loadAbsensiSessions();
+}
+
+async function handleCreateAbsensiSession(e) {
+    e.preventDefault();
+    
+    const sessionData = {
+        acara: document.getElementById('sessionAcara').value,
+        tanggal: document.getElementById('sessionTanggal').value,
+        startTime: document.getElementById('sessionStartTime').value,
+        endTime: document.getElementById('sessionEndTime').value,
+        createdBy: currentUser,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        status: 'active'
+    };
+    
+    showLoading();
+    try {
+        const docRef = await db.collection('absensi_sessions').add(sessionData);
+        
+        const baseUrl = window.location.origin + window.location.pathname.replace('dashboard.html', '');
+        const absensiLink = `${baseUrl}absensi.html?id=${docRef.id}`;
+        
+        showAbsensiLinkModal(absensiLink, sessionData.acara);
+        
+        e.target.reset();
+        loadAbsensiSessions();
+        
+    } catch (error) {
+        console.error('Error creating session:', error);
+        alert('❌ Gagal membuat sesi absensi.');
+    } finally {
+        hideLoading();
+    }
+}
+
+function showAbsensiLinkModal(link, acara) {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'block';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 600px;">
+            <span class="close" onclick="this.closest('.modal').remove()">&times;</span>
+            <h2 style="margin-bottom: 20px;">🔗 Link Absensi Berhasil Dibuat!</h2>
+            
+            <div style="background: #f0f8ff; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <p style="margin-bottom: 10px; font-weight: 600;">Acara: ${acara}</p>
+                <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Bagikan link ini kepada seluruh panitia:</p>
+                <input type="text" value="${link}" readonly style="width: 100%; padding: 12px; border: 2px solid #667eea; border-radius: 5px; font-size: 14px; margin-bottom: 15px;" id="linkToCopy">
+                <button onclick="copyAbsensiLink()" style="width: 100%; padding: 12px; background: #667eea; color: white; border: none; border-radius: 5px; font-weight: 600; cursor: pointer;">
+                    📋 Copy Link
+                </button>
+            </div>
+            
+            <div style="background: #fff9e6; padding: 15px; border-radius: 8px; border-left: 4px solid #f39c12;">
+                <p style="font-size: 13px; color: #666; margin-bottom: 10px;"><strong>⚠️ Perhatian:</strong></p>
+                <ul style="font-size: 13px; color: #666; padding-left: 20px;">
+                    <li>Link hanya aktif pada waktu yang ditentukan</li>
+                    <li>Akses hanya dalam radius 500m dari UIN Antasari</li>
+                    <li>Setelah jam tutup, data otomatis diproses</li>
+                </ul>
+            </div>
+            
+            <button onclick="this.closest('.modal').remove()" style="width: 100%; margin-top: 20px; padding: 12px; background: #95a5a6; color: white; border: none; border-radius: 5px; font-weight: 600; cursor: pointer;">
+                Tutup
+            </button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function copyAbsensiLink() {
+    const input = document.getElementById('linkToCopy');
+    input.select();
+    document.execCommand('copy');
+    alert('✅ Link berhasil di-copy!');
+}
+
+async function loadAbsensiSessions() {
+    try {
+        const snapshot = await db.collection('absensi_sessions')
+            .orderBy('tanggal', 'desc')
+            .orderBy('createdAt', 'desc')
+            .get();
+        
+        const today = new Date().toISOString().split('T')[0];
+        const activeSessions = [];
+        const pastSessions = [];
+        
+        snapshot.forEach(doc => {
+            const data = { id: doc.id, ...doc.data() };
+            if (data.tanggal >= today) {
+                activeSessions.push(data);
+            } else {
+                pastSessions.push(data);
+            }
+        });
+        
+        renderActiveSessions(activeSessions);
+        renderPastSessions(pastSessions);
+        
+    } catch (error) {
+        console.error('Error loading sessions:', error);
+    }
+}
+
+function renderActiveSessions(sessions) {
+    const container = document.getElementById('activeSessionsList');
+    
+    if (sessions.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">Belum ada sesi aktif</p>';
+        return;
+    }
+    
+    container.innerHTML = sessions.map(session => {
+        const baseUrl = window.location.origin + window.location.pathname.replace('dashboard.html', '');
+        const link = `${baseUrl}absensi.html?id=${session.id}`;
+        
+        return `
+            <div class="session-item active">
+                <div class="session-header">
+                    <div>
+                        <div class="session-title">${escapeHtml(session.acara)}</div>
+                        <div class="session-meta">
+                            📅 ${formatDate(session.tanggal)} | 
+                            ⏰ ${session.startTime} - ${session.endTime} WITA
+                        </div>
+                    </div>
+                    <span class="session-badge active">🟢 Aktif</span>
+                </div>
+                <div class="session-actions">
+                    <button onclick="viewAbsensiLink('${link}', '${escapeHtml(session.acara)}')" class="btn-action primary">
+                        🔗 Lihat Link
+                    </button>
+                    <button onclick="viewAbsensiResults('${session.id}')" class="btn-action secondary">
+                        📊 Lihat Hasil (Real-time)
+                    </button>
+                    <button onclick="closeAbsensiSession('${session.id}')" class="btn-action danger">
+                        🔒 Tutup Absensi
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function renderPastSessions(sessions) {
+    const container = document.getElementById('pastSessionsList');
+    
+    if (sessions.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">Belum ada riwayat</p>';
+        return;
+    }
+    
+    container.innerHTML = sessions.map(session => `
+        <div class="session-item">
+            <div class="session-header">
+                <div>
+                    <div class="session-title">${escapeHtml(session.acara)}</div>
+                    <div class="session-meta">
+                        📅 ${formatDate(session.tanggal)} | 
+                        ⏰ ${session.startTime} - ${session.endTime} WITA
+                    </div>
+                </div>
+                <span class="session-badge closed">🔴 Ditutup</span>
+            </div>
+            <div class="session-actions">
+                <button onclick="viewAbsensiResults('${session.id}')" class="btn-action secondary">
+                    📊 Lihat Hasil Akhir
+                </button>
+                <button onclick="deleteAbsensiSession('${session.id}')" class="btn-action danger">
+                    🗑️ Hapus
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function viewAbsensiLink(link, acara) {
+    showAbsensiLinkModal(link, acara);
+}
+
+async function viewAbsensiResults(sessionId) {
+    showLoading();
+    try {
+        const sessionDoc = await db.collection('absensi_sessions').doc(sessionId).get();
+        const sessionData = sessionDoc.data();
+        
+        const attendanceSnapshot = await db.collection('absensi_kehadiran')
+            .where('sessionId', '==', sessionId)
+            .orderBy('timestamp', 'asc')
+            .get();
+        
+        const hadirList = [];
+        attendanceSnapshot.forEach(doc => {
+            hadirList.push(doc.data());
+        });
+        
+        const hadirNIMs = hadirList.map(h => h.nim);
+        const tidakHadirList = [];
+        
+        Object.keys(MEMBERS_DATA.members).forEach(nim => {
+            if (!hadirNIMs.includes(nim)) {
+                tidakHadirList.push({
+                    nim: nim,
+                    nama: MEMBERS_DATA.members[nim].nama
+                });
+            }
+        });
+        
+        showAbsensiResultsModal(sessionData, hadirList, tidakHadirList);
+        
+    } catch (error) {
+        console.error('Error loading results:', error);
+        alert('❌ Gagal memuat data absensi.');
+    } finally {
+        hideLoading();
+    }
+}
+
+function showAbsensiResultsModal(session, hadir, tidakHadir) {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'block';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 800px;">
+            <span class="close" onclick="this.closest('.modal').remove()">&times;</span>
+            <h2>📊 Hasil Absensi</h2>
+            
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="margin-bottom: 10px;">${escapeHtml(session.acara)}</h3>
+                <p style="color: #666; font-size: 14px;">
+                    📅 ${formatDate(session.tanggal)} | 
+                    ⏰ ${session.startTime} - ${session.endTime} WITA
+                </p>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px;">
+                <div style="background: #d5f4e6; padding: 15px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 32px; font-weight: 700; color: #27ae60;">${hadir.length}</div>
+                    <div style="color: #27ae60; font-weight: 600;">✅ Hadir</div>
+                </div>
+                <div style="background: #fadbd8; padding: 15px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 32px; font-weight: 700; color: #e74c3c;">${tidakHadir.length}</div>
+                    <div style="color: #e74c3c; font-weight: 600;">❌ Tidak Hadir</div>
+                </div>
+            </div>
+            
+            <div style="max-height: 400px; overflow-y: auto;">
+                <h4 style="color: #27ae60; margin-bottom: 10px;">✅ Daftar Hadir (${hadir.length})</h4>
+                <table class="absensi-table" style="margin-bottom: 20px;">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Nama</th>
+                            <th>Waktu Absen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${hadir.map((h, i) => `
+                            <tr>
+                                <td>${i + 1}</td>
+                                <td>${escapeHtml(h.nama)}</td>
+                                <td>${h.waktu} WITA</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                
+                <h4 style="color: #e74c3c; margin-bottom: 10px;">❌ Tidak Hadir (${tidakHadir.length})</h4>
+                <table class="absensi-table">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Nama</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tidakHadir.map((t, i) => `
+                            <tr>
+                                <td>${i + 1}</td>
+                                <td>${escapeHtml(t.nama)}</td>
+                                <td>
+                                    <button onclick="addIzinManual('${escapeHtml(session.acara)}', '${t.nim}', '${escapeHtml(t.nama)}')" 
+                                            style="padding: 5px 10px; background: #f39c12; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer;">
+                                        ➕ Izin
+                                    </button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+            
+            <button onclick="this.closest('.modal').remove()" style="width: 100%; margin-top: 20px; padding: 12px; background: #95a5a6; color: white; border: none; border-radius: 5px; font-weight: 600; cursor: pointer;">
+                Tutup
+            </button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function addIzinManual(acara, nim, nama) {
+    const keterangan = prompt(`Masukkan keterangan izin untuk ${nama}:`, 'Sakit');
+    
+    if (keterangan) {
+        const data = {
+            acara: acara,
+            tanggal: new Date().toISOString().split('T')[0],
+            izin: [{
+                nim: nim,
+                nama: nama,
+                keterangan: keterangan
+            }],
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        db.collection('absensi').add(data)
+            .then(() => {
+                alert(`✅ ${nama} berhasil ditandai izin!`);
+                const modal = document.querySelector('.modal');
+                if (modal) modal.remove();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('❌ Gagal menyimpan data izin.');
+            });
+    }
+}
+
+async function closeAbsensiSession(sessionId) {
+    if (!confirm('Tutup sesi absensi ini? Data tidak hadir akan di-generate otomatis.')) {
+        return;
+    }
+    
+    showLoading();
+    try {
+        await db.collection('absensi_sessions').doc(sessionId).update({
+            status: 'closed',
+            closedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        alert('✅ Sesi absensi ditutup!');
+        loadAbsensiSessions();
+        
+    } catch (error) {
+        console.error('Error closing session:', error);
+        alert('❌ Gagal menutup sesi.');
+    } finally {
+        hideLoading();
+    }
+}
+
+async function deleteAbsensiSession(sessionId) {
+    if (!confirm('Hapus sesi absensi ini beserta semua datanya?')) {
+        return;
+    }
+    
+    showLoading();
+    try {
+        await db.collection('absensi_sessions').doc(sessionId).delete();
+        
+        const attendanceSnapshot = await db.collection('absensi_kehadiran')
+            .where('sessionId', '==', sessionId)
+            .get();
+        
+        const batch = db.batch();
+        attendanceSnapshot.forEach(doc => {
+            batch.delete(doc.ref);
+        });
+        await batch.commit();
+        
+        alert('✅ Sesi absensi dihapus!');
+        loadAbsensiSessions();
+        
+    } catch (error) {
+        console.error('Error deleting session:', error);
+        alert('❌ Gagal menghapus sesi.');
+    } finally {
+        hideLoading();
+    }
 }
 
 function openAdminPanel() {
@@ -829,38 +1216,44 @@ function openAdminPanel() {
             </div>
 
             <div id="adminManageAbsensi" class="admin-section">
-                <h3>Kelola Data Absensi</h3>
-                <form id="adminAbsensiForm" class="admin-form">
-                    <div class="form-row">
-                        <div class="form-field">
-                            <label>Nama Acara</label>
-                            <input type="text" id="absensiAcara" required>
+                <h3>Kelola Sesi Absensi Otomatis</h3>
+                
+                <div class="admin-form" style="background: #f0f8ff; border-left: 4px solid #667eea;">
+                    <h4 style="margin-bottom: 20px;">➕ Buat Sesi Absensi Baru</h4>
+                    <form id="createAbsensiSessionForm">
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label>Nama Acara/Kegiatan</label>
+                                <input type="text" id="sessionAcara" placeholder="Rapat Koordinasi" required>
+                            </div>
+                            <div class="form-field">
+                                <label>Tanggal</label>
+                                <input type="date" id="sessionTanggal" required>
+                            </div>
                         </div>
-                        <div class="form-field">
-                            <label>Tanggal</label>
-                            <input type="date" id="absensiTanggal" required>
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label>Jam Mulai Absensi (WITA)</label>
+                                <input type="time" id="sessionStartTime" value="09:30" required>
+                            </div>
+                            <div class="form-field">
+                                <label>Jam Tutup Absensi (WITA)</label>
+                                <input type="time" id="sessionEndTime" value="10:00" required>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <h4>Data Kehadiran</h4>
-                    <div class="form-field">
-                        <label>NIM Hadir (pisahkan dengan koma)</label>
-                        <textarea id="absensiHadir" rows="3" placeholder="230101050652, 230101050763, ..."></textarea>
-                        <small>Format: NIM, NIM, NIM (akan auto-match dengan nama)</small>
-                    </div>
-                    
-                    <div class="form-field">
-                        <label>NIM Izin (format: NIM|keterangan, pisahkan dengan koma)</label>
-                        <textarea id="absensiIzin" rows="2" placeholder="230101050276|Sakit, 230101050650|Acara Keluarga"></textarea>
-                    </div>
-                    
-                    <div class="form-field">
-                        <label>NIM Alpha (pisahkan dengan koma)</label>
-                        <textarea id="absensiAlpha" rows="2" placeholder="230101050654, 230101050669, ..."></textarea>
-                    </div>
-                    
-                    <button type="submit" class="btn-save">💾 Simpan Data Absensi</button>
-                </form>
+                        <button type="submit" class="btn-save">🔗 Buat Link Absensi</button>
+                    </form>
+                </div>
+                
+                <hr style="margin: 30px 0;">
+                
+                <h4>📋 Sesi Absensi Aktif</h4>
+                <div id="activeSessionsList"></div>
+                
+                <hr style="margin: 30px 0;">
+                
+                <h4>📜 Riwayat Absensi</h4>
+                <div id="pastSessionsList"></div>
             </div>
         </div>
     `;
@@ -901,6 +1294,8 @@ function initAdminTabs() {
                 loadAdminAllTodos();
             } else if (tab === 'manageJadwal') {
                 loadAdminJadwalList();
+            } else if (tab === 'manageAbsensi') {
+                initAbsensiSessionHandlers();
             }
         });
     });
@@ -908,11 +1303,6 @@ function initAdminTabs() {
     const jadwalForm = document.getElementById('adminJadwalForm');
     if (jadwalForm) {
         jadwalForm.addEventListener('submit', handleAdminJadwalSubmit);
-    }
-    
-    const absensiForm = document.getElementById('adminAbsensiForm');
-    if (absensiForm) {
-        absensiForm.addEventListener('submit', handleAdminAbsensiSubmit);
     }
 }
 
@@ -1121,64 +1511,6 @@ async function deleteAdminJadwal(id) {
         } finally {
             hideLoading();
         }
-    }
-}
-
-async function handleAdminAbsensiSubmit(e) {
-    e.preventDefault();
-    
-    const acara = document.getElementById('absensiAcara').value;
-    const tanggal = document.getElementById('absensiTanggal').value;
-    
-    const hadirNIMs = document.getElementById('absensiHadir').value
-        .split(',').map(nim => nim.trim()).filter(nim => nim);
-    
-    const izinData = document.getElementById('absensiIzin').value
-        .split(',').map(item => {
-            const parts = item.split('|');
-            return { nim: parts[0]?.trim(), keterangan: parts[1]?.trim() || 'Izin' };
-        }).filter(item => item.nim);
-    
-    const alphaNIMs = document.getElementById('absensiAlpha').value
-        .split(',').map(nim => nim.trim()).filter(nim => nim);
-    
-    const hadir = hadirNIMs.map(nim => ({
-        nim,
-        nama: MEMBERS_DATA.members[nim]?.nama || 'Unknown',
-        waktu: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
-    }));
-    
-    const izin = izinData.map(item => ({
-        nim: item.nim,
-        nama: MEMBERS_DATA.members[item.nim]?.nama || 'Unknown',
-        keterangan: item.keterangan
-    }));
-    
-    const alpha = alphaNIMs.map(nim => ({
-        nim,
-        nama: MEMBERS_DATA.members[nim]?.nama || 'Unknown'
-    }));
-    
-    showLoading();
-    try {
-        await absensiCollection.add({
-            acara,
-            tanggal,
-            hadir,
-            izin,
-            alpha,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        
-        await loadAbsensiFromFirebase();
-        
-        e.target.reset();
-        alert('✅ Data absensi berhasil disimpan!');
-    } catch (error) {
-        console.error('Error saving absensi:', error);
-        alert('❌ Gagal menyimpan data absensi.');
-    } finally {
-        hideLoading();
     }
 }
 
