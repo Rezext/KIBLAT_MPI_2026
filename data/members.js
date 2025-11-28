@@ -98,7 +98,7 @@ const MEMBERS_DATA = {
         '230101050265': { nama: 'NAZWA ASY SYIFA', divisi: ['promosi'] },
         '230101050665': { nama: 'DIANA AHMAD', divisi: ['promosi'] },
         '230101050648': { nama: 'AHMAD ALAMSYAH', divisi: ['promosi'] },
-        '230101050663': { nama: 'AULIA RAHMAN', divisi: ['promosi'] },
+        '230101050661': { nama: 'AULIA RAHMAH', divisi: ['promosi'] },
         
         // Divisi Humas (Sponsorship)
         '230101050688': { nama: 'NORVILA', divisi: ['humas'] },
