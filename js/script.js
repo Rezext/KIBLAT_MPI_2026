@@ -1124,18 +1124,30 @@ async function viewAbsensiResults(sessionId) {
             .get();
         
         const hadirList = [];
-        const hadirNIMs = new Set(); // Gunakan Set untuk cek lebih cepat
+        const hadirNIMs = new Set();
+        const duplicates = []; // Deteksi duplikat
         
         attendanceSnapshot.forEach(doc => {
             const data = doc.data();
-            hadirList.push(data);
-            hadirNIMs.add(data.nim); // Tambahkan NIM ke Set
+            
+            // Cek duplikat
+            if (hadirNIMs.has(data.nim)) {
+                duplicates.push({
+                    nim: data.nim,
+                    nama: data.nama,
+                    docId: doc.id
+                });
+                console.warn('⚠️ DUPLIKAT DITEMUKAN:', data.nim, data.nama);
+            } else {
+                hadirList.push(data);
+                hadirNIMs.add(data.nim);
+            }
         });
         
-        // PERBAIKAN: Filter tidak hadir berdasarkan NIM yang BELUM ada di hadirNIMs
+        // Filter tidak hadir
         const tidakHadirList = [];
         Object.keys(MEMBERS_DATA.members).forEach(nim => {
-            if (!hadirNIMs.has(nim)) { // Gunakan Set.has() lebih akurat
+            if (!hadirNIMs.has(nim)) {
                 tidakHadirList.push({
                     nim: nim,
                     nama: MEMBERS_DATA.members[nim].nama
@@ -1143,9 +1155,19 @@ async function viewAbsensiResults(sessionId) {
             }
         });
         
-        console.log('Total Hadir:', hadirList.length);
+        console.log('=== STATISTIK ABSENSI ===');
+        console.log('Total Members di Database:', Object.keys(MEMBERS_DATA.members).length);
+        console.log('Total Hadir (Unik):', hadirList.length);
         console.log('Total Tidak Hadir:', tidakHadirList.length);
+        console.log('Total Duplikat:', duplicates.length);
         console.log('Total Semua:', hadirList.length + tidakHadirList.length);
+        
+        if (duplicates.length > 0) {
+            console.warn('⚠️ DAFTAR DUPLIKAT:');
+            duplicates.forEach(d => {
+                console.warn(`- ${d.nim} (${d.nama}) - Doc ID: ${d.docId}`);
+            });
+        }
         
         showAbsensiResultsModal(sessionData, hadirList, tidakHadirList);
         
