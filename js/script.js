@@ -1124,21 +1124,28 @@ async function viewAbsensiResults(sessionId) {
             .get();
         
         const hadirList = [];
+        const hadirNIMs = new Set(); // Gunakan Set untuk cek lebih cepat
+        
         attendanceSnapshot.forEach(doc => {
-            hadirList.push(doc.data());
+            const data = doc.data();
+            hadirList.push(data);
+            hadirNIMs.add(data.nim); // Tambahkan NIM ke Set
         });
         
-        const hadirNIMs = hadirList.map(h => h.nim);
+        // PERBAIKAN: Filter tidak hadir berdasarkan NIM yang BELUM ada di hadirNIMs
         const tidakHadirList = [];
-        
         Object.keys(MEMBERS_DATA.members).forEach(nim => {
-            if (!hadirNIMs.includes(nim)) {
+            if (!hadirNIMs.has(nim)) { // Gunakan Set.has() lebih akurat
                 tidakHadirList.push({
                     nim: nim,
                     nama: MEMBERS_DATA.members[nim].nama
                 });
             }
         });
+        
+        console.log('Total Hadir:', hadirList.length);
+        console.log('Total Tidak Hadir:', tidakHadirList.length);
+        console.log('Total Semua:', hadirList.length + tidakHadirList.length);
         
         showAbsensiResultsModal(sessionData, hadirList, tidakHadirList);
         
@@ -1149,6 +1156,7 @@ async function viewAbsensiResults(sessionId) {
         hideLoading();
     }
 }
+
 
 function showAbsensiResultsModal(session, hadir, tidakHadir) {
     const modal = document.createElement('div');
