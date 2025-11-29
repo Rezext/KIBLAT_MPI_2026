@@ -1174,16 +1174,6 @@ function showAbsensiResultsModal(session, hadir, tidakHadir) {
                     ⏰ ${session.startTime} - ${session.endTime} WITA
                 </p>
             </div>
-
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
-    <button onclick="viewAbsensiResults('${sessionData.id || sessionId}')" style="flex: 1; padding: 12px; background: #667eea; color: white; border: none; border-radius: 5px; font-weight: 600; cursor: pointer;">
-        🔄 Refresh Data
-    </button>
-    <button onclick="this.closest('.modal').remove()" style="flex: 1; padding: 12px; background: #95a5a6; color: white; border: none; border-radius: 5px; font-weight: 600; cursor: pointer;">
-        Tutup
-    </button>
-</div>
-
             
             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px;">
                 <div style="background: #d5f4e6; padding: 15px; border-radius: 8px; text-align: center;">
