@@ -1960,3 +1960,168 @@ body {
         padding: 20px;
     }
 }
+
+/* Absensi Public Card */
+.absensi-card {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.absensi-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.15);
+}
+
+.absensi-header h3 {
+    color: #2c3e50;
+    font-size: 20px;
+    margin-bottom: 8px;
+}
+
+.absensi-date {
+    color: #7f8c8d;
+    font-size: 14px;
+    display: block;
+    margin-bottom: 20px;
+}
+
+.absensi-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.absensi-stats .stat-item {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.absensi-stats .stat-number {
+    display: block;
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.absensi-stats .stat-label {
+    display: block;
+    font-size: 12px;
+    opacity: 0.9;
+}
+
+.absensi-preview h4 {
+    color: #27ae60;
+    font-size: 16px;
+    margin-bottom: 15px;
+}
+
+.preview-list {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.preview-item {
+    display: grid;
+    grid-template-columns: 30px 1fr auto;
+    gap: 10px;
+    padding: 10px;
+    border-bottom: 1px solid #e0e0e0;
+    align-items: center;
+}
+
+.preview-item:last-child {
+    border-bottom: none;
+}
+
+.preview-no {
+    font-weight: 600;
+    color: #667eea;
+}
+
+.preview-name {
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+.preview-time {
+    color: #7f8c8d;
+    font-size: 13px;
+}
+
+.preview-more {
+    text-align: center;
+    color: #667eea;
+    font-weight: 600;
+    font-style: italic;
+    padding: 10px;
+}
+
+.absensi-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-detail,
+.btn-download {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-detail {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-detail:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.btn-download {
+    background: #27ae60;
+    color: white;
+}
+
+.btn-download:hover {
+    background: #229954;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(39, 174, 96, 0.4);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .absensi-stats {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .absensi-actions {
+        flex-direction: column;
+    }
+    
+    .preview-item {
+        grid-template-columns: 30px 1fr;
+        gap: 8px;
+    }
+    
+    .preview-time {
+        grid-column: 2;
+        font-size: 12px;
+    }
+}
