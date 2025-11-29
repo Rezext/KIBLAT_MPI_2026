@@ -1125,10 +1125,21 @@ async function viewAbsensiResults(sessionId) {
         
         const hadirList = [];
         const hadirNIMs = new Set();
-        const duplicates = []; // Deteksi duplikat
+        const duplicates = [];
+        const nimNotInMembers = []; // NIM yang ada di Firebase tapi tidak ada di members.js
         
         attendanceSnapshot.forEach(doc => {
             const data = doc.data();
+            
+            // Cek apakah NIM ada di MEMBERS_DATA
+            if (!MEMBERS_DATA.members[data.nim]) {
+                nimNotInMembers.push({
+                    nim: data.nim,
+                    nama: data.nama,
+                    docId: doc.id
+                });
+                console.warn('⚠️ NIM TIDAK ADA DI MEMBERS.JS:', data.nim, data.nama);
+            }
             
             // Cek duplikat
             if (hadirNIMs.has(data.nim)) {
@@ -1137,7 +1148,7 @@ async function viewAbsensiResults(sessionId) {
                     nama: data.nama,
                     docId: doc.id
                 });
-                console.warn('⚠️ DUPLIKAT DITEMUKAN:', data.nim, data.nama);
+                console.warn('⚠️ DUPLIKAT:', data.nim, data.nama);
             } else {
                 hadirList.push(data);
                 hadirNIMs.add(data.nim);
@@ -1160,7 +1171,15 @@ async function viewAbsensiResults(sessionId) {
         console.log('Total Hadir (Unik):', hadirList.length);
         console.log('Total Tidak Hadir:', tidakHadirList.length);
         console.log('Total Duplikat:', duplicates.length);
+        console.log('NIM Tidak di Members.js:', nimNotInMembers.length);
         console.log('Total Semua:', hadirList.length + tidakHadirList.length);
+        
+        if (nimNotInMembers.length > 0) {
+            console.warn('⚠️ DAFTAR NIM TIDAK ADA DI MEMBERS.JS:');
+            nimNotInMembers.forEach(d => {
+                console.warn(`- ${d.nim} (${d.nama}) - Doc ID: ${d.docId}`);
+            });
+        }
         
         if (duplicates.length > 0) {
             console.warn('⚠️ DAFTAR DUPLIKAT:');
@@ -1178,6 +1197,7 @@ async function viewAbsensiResults(sessionId) {
         hideLoading();
     }
 }
+
 
 
 function showAbsensiResultsModal(session, hadir, tidakHadir) {
