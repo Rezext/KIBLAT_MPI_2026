@@ -12,11 +12,6 @@ const MEMBERS_DATA = {
     
     // Member list dengan divisi
     members: {
-        //Dosen Pendamping
-         'Ruslan': {
-            nama: 'MUHAMMAD RUSLAN, M.Pd',
-            divisi: ['acara', 'pdd', 'perleng', 'konsumsi', 'kestapen', 'keamanan', 'promosi', 'humas']
-        
         // Penanggungjawab
         '230101050678': {
             nama: 'MUHAMMAD BAICHAKI MAULANA',
