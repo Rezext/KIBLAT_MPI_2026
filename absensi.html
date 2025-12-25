@@ -272,13 +272,18 @@ async function validateAccess() {
 }
 
 async function validateLocation() {
+    // UPDATE BYPASS: Cek apakah browser mendukung GPS
     if (!navigator.geolocation) {
-        showError('Browser tidak mendukung GPS. Gunakan Chrome/Safari terbaru.');
+        // Jika tidak support, isi lokasi dummy dan tetap lanjut (Bypass)
+        userLocation = { latitude: 0, longitude: 0 };
+        document.getElementById('currentLocation').textContent = "GPS Tidak Support (Mode Bebas)";
+        showForm(); 
         return;
     }
     
     navigator.geolocation.getCurrentPosition(
         (position) => {
+            // Jika berhasil dapat lokasi
             userLocation = {
                 latitude: position.coords.latitude,
                 longitude: position.coords.longitude
@@ -291,23 +296,35 @@ async function validateLocation() {
                 UIN_LONGITUDE
             );
             
+            // Info jarak tetap ditampilkan sekedar untuk informasi
             document.getElementById('currentLocation').textContent = `${Math.round(distance)}m dari kampus`;
             
-            if (distance > RADIUS_METERS) {
+            // --- UPDATE: BAGIAN BATASAN LOKASI DINONAKTIFKAN ---
+            // Kode if dibawah ini dikomentari agar tidak memblokir pengguna
+            /* if (distance > RADIUS_METERS) {
                 showError(`Anda terlalu jauh dari kampus (${Math.round(distance)}m). Maksimal ${RADIUS_METERS}m.`);
                 return;
             }
+            */
+            // ---------------------------------------------------
             
-            // All validations passed
+            // Langsung tampilkan form dimanapun posisinya
             showForm();
         },
         (error) => {
-            console.error('Geolocation error:', error);
-            showError('Gagal mendeteksi lokasi. Aktifkan GPS dan izinkan akses lokasi.');
+            // UPDATE: Jika User mematikan GPS atau Error, TETAP LANJUT (Bypass)
+            console.warn('GPS Error/Denied, bypassing location check:', error);
+            
+            // Set lokasi 0,0 agar database tidak error
+            userLocation = { latitude: 0, longitude: 0 };
+            document.getElementById('currentLocation').textContent = "Lokasi Off (Mode Bebas)";
+            
+            // Tetap izinkan mengisi form
+            showForm();
         },
         {
             enableHighAccuracy: true,
-            timeout: 10000,
+            timeout: 5000, // Timeout dipercepat jadi 5 detik
             maximumAge: 0
         }
     );
